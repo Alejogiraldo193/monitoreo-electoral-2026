@@ -968,7 +968,8 @@ function cerrarVictoria() {
     }, 280);
   }
   // Marcar como vista para no repetir
-  VICTORIA_VISTA = null; // reset para permitir futura activación
+  // Mantener VICTORIA_VISTA con el timestamp actual para no repetir
+  // Solo se resetea cuando el admin activa una NUEVA victoria
   // Si es admin, apagar el broadcast
   if (SESSION && SESSION.rol === 'coordinador') {
     apiGet({ action: 'setVictoria', estado: 'off' }, function() {});
