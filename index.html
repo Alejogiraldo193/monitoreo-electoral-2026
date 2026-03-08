@@ -10,10 +10,7 @@
     window.addEventListener('DOMContentLoaded', function() {
       if (typeof IMG_JULIAN !== 'undefined' && IMG_JULIAN.length > 50) {
         document.getElementById('favicon').href = 'data:image/png;base64,' + IMG_JULIAN;
-      var loginBg = document.getElementById('login-bg');
-      if (loginBg && typeof IMG_HERO !== 'undefined') {
-        loginBg.src = 'data:image/jpeg;base64,' + IMG_HERO;
-      }
+      iniciarHero();
       }
     });
   </script>
@@ -292,325 +289,67 @@
       .tab { flex:1; text-align:center; font-size:0.75rem; padding:8px 10px; }
     }
 
-    /* ── HERO FONDO PANTALLA COMPLETA ─────────────────── */
-    #login-screen { position: relative; overflow: hidden; }
-    #login-bg {
-      position: absolute; inset: 0;
-      width: 100%; height: 100%;
-      object-fit: cover; object-position: 80% center;
-      z-index: 0;
-    }
-    #login-screen::before {
-      z-index: 1 !important;
-      background: linear-gradient(135deg,
-        rgba(5,0,0,0.82) 0%, rgba(80,0,0,0.65) 50%, rgba(5,0,0,0.88) 100%
-      ) !important;
-    }
-    .login-card {
-      position: relative; z-index: 2;
-      background: rgba(255,255,255,0.07) !important;
-      backdrop-filter: blur(18px) !important;
-      -webkit-backdrop-filter: blur(18px) !important;
-      border: 1px solid rgba(212,175,55,0.25) !important;
-      box-shadow: 0 8px 48px rgba(0,0,0,0.7) !important;
-    }
-    .login-card * { color: rgba(255,255,255,0.92); }
-    .login-logo h1 { color: var(--oro) !important; text-shadow: 0 2px 12px rgba(0,0,0,0.8); }
-    .login-logo p { color: rgba(255,255,255,0.7) !important; }
-    .login-badge { background: rgba(139,0,0,0.85) !important; border: 1px solid rgba(212,175,55,0.4) !important; }
-    .form-group label { color: rgba(255,255,255,0.75) !important; }
-    .form-group input { background: rgba(255,255,255,0.10) !important; border: 1px solid rgba(255,255,255,0.2) !important; color: #fff !important; }
-    .form-group input::placeholder { color: rgba(255,255,255,0.35) !important; }
-    .form-group input:focus { border-color: var(--oro) !important; background: rgba(255,255,255,0.15) !important; }
+    /* ── HERO LOGIN ───────────────────────────────────── */
+    #login-screen { position:relative; overflow:hidden; }
+    #login-bg { position:absolute; inset:0; width:100%; height:100%; object-fit:cover; object-position:80% center; z-index:0; }
+    #login-screen::before { z-index:1 !important; background:linear-gradient(135deg,rgba(5,0,0,0.82) 0%,rgba(80,0,0,0.65) 50%,rgba(5,0,0,0.88) 100%) !important; }
+    .login-card { position:relative; z-index:2; background:rgba(255,255,255,0.07) !important; backdrop-filter:blur(18px) !important; -webkit-backdrop-filter:blur(18px) !important; border:1px solid rgba(212,175,55,0.25) !important; box-shadow:0 8px 48px rgba(0,0,0,0.7) !important; }
+    .login-card * { color:rgba(255,255,255,0.92); }
+    .login-logo h1 { color:var(--oro) !important; text-shadow:0 2px 12px rgba(0,0,0,0.8); }
+    .login-logo p { color:rgba(255,255,255,0.7) !important; }
+    .login-badge { background:rgba(139,0,0,0.85) !important; border:1px solid rgba(212,175,55,0.4) !important; }
+    .form-group label { color:rgba(255,255,255,0.75) !important; }
+    .form-group input { background:rgba(255,255,255,0.10) !important; border:1px solid rgba(255,255,255,0.2) !important; color:#fff !important; }
+    .form-group input::placeholder { color:rgba(255,255,255,0.35) !important; }
+    .form-group input:focus { border-color:var(--oro) !important; background:rgba(255,255,255,0.15) !important; }
 
-    /* ── MODAL BIENVENIDA ──────────────────────────────── */
-    #modal-bienvenida {
-      display: none;
-      position: fixed; inset: 0; z-index: 9999;
-      background: rgba(0,0,0,0.75);
-      backdrop-filter: blur(6px);
-      align-items: center; justify-content: center;
-    }
-    #modal-bienvenida.visible { display: flex; animation: fadeInModal 0.4s ease; }
-    @keyframes fadeInModal {
-      from { opacity: 0; transform: scale(0.96); }
-      to   { opacity: 1; transform: scale(1); }
-    }
-    .bienvenida-card {
-      background: linear-gradient(145deg, #1a0000 0%, #3a0000 50%, #1a0000 100%);
-      border: 1px solid rgba(212,175,55,0.4);
-      border-radius: 20px;
-      padding: 40px 48px;
-      max-width: 480px;
-      width: 90%;
-      text-align: center;
-      box-shadow: 0 20px 60px rgba(0,0,0,0.8), inset 0 1px 0 rgba(212,175,55,0.15);
-      position: relative;
-    }
-    .bienvenida-icon {
-      width: 72px; height: 72px;
-      background: var(--rojo);
-      border-radius: 50%;
-      display: flex; align-items: center; justify-content: center;
-      margin: 0 auto 20px;
-      font-size: 2rem;
-      box-shadow: 0 4px 20px rgba(139,0,0,0.5);
-    }
-    .bienvenida-saludo {
-      font-family: 'Bebas Neue', sans-serif;
-      font-size: 1rem;
-      color: rgba(255,255,255,0.6);
-      letter-spacing: 3px;
-      text-transform: uppercase;
-      margin-bottom: 4px;
-    }
-    .bienvenida-nombre {
-      font-family: 'Bebas Neue', sans-serif;
-      font-size: 2.6rem;
-      color: var(--oro);
-      letter-spacing: 2px;
-      line-height: 1;
-      margin-bottom: 16px;
-      text-shadow: 0 2px 12px rgba(212,175,55,0.3);
-    }
-    .bienvenida-info {
-      font-family: 'DM Sans', sans-serif;
-      font-size: 0.88rem;
-      color: rgba(255,255,255,0.75);
-      line-height: 1.6;
-      margin-bottom: 20px;
-      padding: 14px 16px;
-      background: rgba(255,255,255,0.05);
-      border-radius: 10px;
-      border: 1px solid rgba(255,255,255,0.08);
-    }
-    .bienvenida-grito {
-      font-family: 'Bebas Neue', sans-serif;
-      font-size: 1.3rem;
-      color: var(--oro);
-      letter-spacing: 1.5px;
-      margin-bottom: 24px;
-      text-shadow: 0 2px 8px rgba(212,175,55,0.4);
-    }
-    .bienvenida-btn {
-      background: var(--rojo);
-      color: white;
-      border: none;
-      padding: 12px 36px;
-      border-radius: 30px;
-      font-family: 'Montserrat', sans-serif;
-      font-weight: 700;
-      font-size: 0.9rem;
-      letter-spacing: 1px;
-      cursor: pointer;
-      transition: all 0.2s;
-      box-shadow: 0 4px 16px rgba(139,0,0,0.4);
-    }
-    .bienvenida-btn:hover { background: var(--rojo-vivo); transform: translateY(-2px); }
+    /* ── MODAL BASE ───────────────────────────────────── */
+    @keyframes fadeInModal { from{opacity:0;transform:scale(0.96)} to{opacity:1;transform:scale(1)} }
+    .modal-overlay { display:none; position:fixed; inset:0; z-index:9999; background:rgba(0,0,0,0.75); backdrop-filter:blur(6px); align-items:center; justify-content:center; }
+    .modal-overlay.visible { display:flex; animation:fadeInModal 0.4s ease; }
+    .bienvenida-card { background:linear-gradient(145deg,#1a0000 0%,#3a0000 50%,#1a0000 100%); border:1px solid rgba(212,175,55,0.4); border-radius:20px; padding:40px 48px; max-width:480px; width:90%; text-align:center; box-shadow:0 20px 60px rgba(0,0,0,0.8); }
+    .bienvenida-icon { width:72px; height:72px; background:var(--rojo); border-radius:50%; display:flex; align-items:center; justify-content:center; margin:0 auto 20px; font-size:2rem; box-shadow:0 4px 20px rgba(139,0,0,0.5); }
+    .bienvenida-saludo { font-family:'Bebas Neue',sans-serif; font-size:1rem; color:rgba(255,255,255,0.6); letter-spacing:3px; text-transform:uppercase; margin-bottom:4px; }
+    .bienvenida-nombre { font-family:'Bebas Neue',sans-serif; font-size:2.6rem; color:var(--oro); letter-spacing:2px; line-height:1; margin-bottom:16px; text-shadow:0 2px 12px rgba(212,175,55,0.3); }
+    .bienvenida-info { font-family:'DM Sans',sans-serif; font-size:0.88rem; color:rgba(255,255,255,0.75); line-height:1.6; margin-bottom:20px; padding:14px 16px; background:rgba(255,255,255,0.05); border-radius:10px; border:1px solid rgba(255,255,255,0.08); }
+    .bienvenida-btn { background:var(--rojo); color:white; border:none; padding:12px 36px; border-radius:30px; font-family:'Montserrat',sans-serif; font-weight:700; font-size:0.9rem; letter-spacing:1px; cursor:pointer; transition:all 0.2s; box-shadow:0 4px 16px rgba(139,0,0,0.4); }
+    .bienvenida-btn:hover { background:var(--rojo-vivo); transform:translateY(-2px); }
 
-    #modal-visor {
-      display: none;
-      position: fixed; inset: 0; z-index: 9999;
-      background: rgba(0,0,0,0.75);
-      backdrop-filter: blur(6px);
-      align-items: center; justify-content: center;
-    }
-    #modal-visor.visible { display: flex; animation: fadeInModal 0.4s ease; }
-    .bienvenida-grito {
-      font-family: "Bebas Neue", sans-serif;
-      font-size: 1.4rem;
-      color: var(--oro);
-      letter-spacing: 1.5px;
-      margin-bottom: 20px;
-      text-shadow: 0 2px 8px rgba(212,175,55,0.4);
-    }
+    /* ── MODAL CONFIRMACION GUARDAR ───────────────────── */
+    .confirmar-card { background:linear-gradient(145deg,#1a0000 0%,#2d0000 60%,#1a0000 100%); border:1px solid rgba(212,175,55,0.35); border-radius:18px; padding:32px 36px; max-width:420px; width:92%; text-align:center; box-shadow:0 16px 48px rgba(0,0,0,0.7); }
+    .confirmar-icon { font-size:2.2rem; margin-bottom:10px; }
+    .confirmar-titulo { font-family:'Bebas Neue',sans-serif; font-size:1.6rem; color:var(--oro); letter-spacing:2px; margin-bottom:6px; }
+    .confirmar-subtitulo { font-size:0.82rem; color:rgba(255,255,255,0.55); margin-bottom:16px; }
+    .confirmar-datos { background:rgba(255,255,255,0.06); border:1px solid rgba(255,255,255,0.1); border-radius:10px; padding:14px 16px; margin-bottom:20px; text-align:left; }
+    .confirmar-fila { display:flex; justify-content:space-between; padding:5px 0; border-bottom:1px solid rgba(255,255,255,0.06); font-size:0.85rem; }
+    .confirmar-fila:last-child { border-bottom:none; }
+    .confirmar-fila .cf-label { color:rgba(255,255,255,0.55); }
+    .confirmar-fila .cf-valor { color:white; font-weight:600; font-family:monospace; }
+    .confirmar-btns { display:flex; gap:12px; justify-content:center; }
+    .confirmar-btn-si { background:var(--rojo); color:white; border:none; padding:11px 28px; border-radius:25px; font-family:'Montserrat',sans-serif; font-weight:700; font-size:0.88rem; cursor:pointer; transition:all 0.2s; flex:1; }
+    .confirmar-btn-si:hover { background:var(--rojo-vivo); transform:translateY(-1px); }
+    .confirmar-btn-no { background:transparent; color:rgba(255,255,255,0.6); border:1px solid rgba(255,255,255,0.2); padding:11px 28px; border-radius:25px; font-family:'Montserrat',sans-serif; font-weight:600; font-size:0.88rem; cursor:pointer; transition:all 0.2s; flex:1; }
+    .confirmar-btn-no:hover { border-color:rgba(255,255,255,0.5); color:white; }
 
-    /* ── TOGGLE DARK MODE ─────────────────────────────── */
-
-    /* ── BADGE ALERTA PARPADEANTE ─────────────────────── */
-    @keyframes parpadear {
-      0%,100% { opacity:1; transform:scale(1); }
-      50%      { opacity:0.4; transform:scale(1.15); }
-    }
-    .badge-nueva-alerta {
-      animation: parpadear 0.8s ease infinite;
-      background: #ff0000 !important;
-      color: white !important;
-    }
-
-    
-    /* ── NOTIFICACIÓN FLOTANTE ALERTA ─────────────────── */
-    #notif-alerta {
-      display:none; position:fixed; top:20px; right:20px; z-index:9998;
-      background:#8B0000; color:white; border-radius:12px;
-      padding:14px 20px; max-width:320px;
-      box-shadow:0 8px 32px rgba(139,0,0,0.6);
-      border:1px solid rgba(255,100,100,0.4);
-      animation: slideInRight 0.4s ease;
-    }
-    #notif-alerta.visible { display:block; }
-    @keyframes slideInRight {
-      from { transform:translateX(120%); opacity:0; }
-      to   { transform:translateX(0);    opacity:1; }
-    }
-    .notif-titulo { font-family:"Bebas Neue",sans-serif; font-size:1.1rem; letter-spacing:1px; margin-bottom:4px; }
-    .notif-body   { font-size:0.82rem; opacity:0.9; line-height:1.4; }
-    .notif-close  { position:absolute; top:8px; right:10px; background:none; border:none; color:white; font-size:1rem; cursor:pointer; }
-
-    
-
-    /* ── MODAL CONFIRMACIÓN GUARDAR ───────────────────── */
-    #modal-confirmar {
-      display: none;
-      position: fixed; inset: 0; z-index: 9999;
-      background: rgba(0,0,0,0.6);
-      backdrop-filter: blur(4px);
-      align-items: center; justify-content: center;
-    }
-    #modal-confirmar.visible { display: flex; animation: fadeInModal 0.3s ease; }
-    .confirmar-card {
-      background: linear-gradient(145deg, #1a0000 0%, #2d0000 60%, #1a0000 100%);
-      border: 1px solid rgba(212,175,55,0.35);
-      border-radius: 18px;
-      padding: 32px 36px;
-      max-width: 420px;
-      width: 92%;
-      text-align: center;
-      box-shadow: 0 16px 48px rgba(0,0,0,0.7);
-    }
-    .confirmar-icon { font-size: 2.2rem; margin-bottom: 10px; }
-    .confirmar-titulo {
-      font-family: 'Bebas Neue', sans-serif;
-      font-size: 1.6rem; color: var(--oro);
-      letter-spacing: 2px; margin-bottom: 6px;
-    }
-    .confirmar-subtitulo {
-      font-size: 0.82rem; color: rgba(255,255,255,0.55);
-      margin-bottom: 16px; letter-spacing: 0.5px;
-    }
-    .confirmar-datos {
-      background: rgba(255,255,255,0.06);
-      border: 1px solid rgba(255,255,255,0.1);
-      border-radius: 10px;
-      padding: 14px 16px;
-      margin-bottom: 20px;
-      text-align: left;
-    }
-    .confirmar-fila {
-      display: flex; justify-content: space-between;
-      padding: 5px 0; border-bottom: 1px solid rgba(255,255,255,0.06);
-      font-size: 0.85rem;
-    }
-    .confirmar-fila:last-child { border-bottom: none; }
-    .confirmar-fila .cf-label { color: rgba(255,255,255,0.55); }
-    .confirmar-fila .cf-valor { color: white; font-weight: 600; font-family: monospace; }
-    .confirmar-btns { display: flex; gap: 12px; justify-content: center; }
-    .confirmar-btn-si {
-      background: var(--rojo); color: white; border: none;
-      padding: 11px 28px; border-radius: 25px;
-      font-family: 'Montserrat', sans-serif; font-weight: 700;
-      font-size: 0.88rem; letter-spacing: 0.5px; cursor: pointer;
-      transition: all 0.2s; flex: 1;
-    }
-    .confirmar-btn-si:hover { background: var(--rojo-vivo); transform: translateY(-1px); }
-    .confirmar-btn-no {
-      background: transparent; color: rgba(255,255,255,0.6);
-      border: 1px solid rgba(255,255,255,0.2);
-      padding: 11px 28px; border-radius: 25px;
-      font-family: 'Montserrat', sans-serif; font-weight: 600;
-      font-size: 0.88rem; cursor: pointer; transition: all 0.2s; flex: 1;
-    }
-    .confirmar-btn-no:hover { border-color: rgba(255,255,255,0.5); color: white; }
+    /* ── NOTIFICACION ALERTA ──────────────────────────── */
+    #notif-alerta { display:none; position:fixed; top:20px; right:20px; z-index:9998; background:#8B0000; color:white; border-radius:12px; padding:14px 20px; max-width:320px; box-shadow:0 8px 32px rgba(139,0,0,0.6); border:1px solid rgba(255,100,100,0.4); }
+    #notif-alerta.visible { display:block; animation:slideInRight 0.4s ease; }
+    @keyframes slideInRight { from{transform:translateX(120%);opacity:0} to{transform:translateX(0);opacity:1} }
+    .notif-titulo { font-family:'Bebas Neue',sans-serif; font-size:1.1rem; letter-spacing:1px; margin-bottom:4px; }
+    .notif-body { font-size:0.82rem; opacity:0.9; line-height:1.4; }
+    .notif-close { position:absolute; top:8px; right:10px; background:none; border:none; color:white; font-size:1rem; cursor:pointer; }
 
     /* ── MODAL VICTORIA ───────────────────────────────── */
-    #modal-victoria {
-      display: none;
-      position: fixed; inset: 0; z-index: 99999;
-      background: rgba(0,0,0,0.85);
-      backdrop-filter: blur(8px);
-      align-items: center; justify-content: center;
-      flex-direction: column;
-    }
-    #modal-victoria.visible { display: flex; animation: fadeInModal 0.5s ease; }
-    .victoria-card {
-      background: linear-gradient(145deg, #0a0000 0%, #3a0000 40%, #1a0a00 70%, #0a0000 100%);
-      border: 2px solid var(--oro);
-      border-radius: 24px;
-      padding: 48px 52px;
-      max-width: 500px;
-      width: 92%;
-      text-align: center;
-      box-shadow: 0 0 80px rgba(212,175,55,0.4), 0 20px 60px rgba(0,0,0,0.9);
-      position: relative;
-      z-index: 2;
-    }
-    .victoria-emoji {
-      font-size: 4rem;
-      display: block;
-      margin-bottom: 12px;
-      animation: pulseEmoji 1s ease infinite alternate;
-    }
-    @keyframes pulseEmoji {
-      from { transform: scale(1);    filter: drop-shadow(0 0 8px rgba(212,175,55,0.4)); }
-      to   { transform: scale(1.15); filter: drop-shadow(0 0 24px rgba(212,175,55,0.9)); }
-    }
-    .victoria-titulo {
-      font-family: 'Bebas Neue', sans-serif;
-      font-size: 4.5rem;
-      color: var(--oro);
-      letter-spacing: 4px;
-      line-height: 1;
-      margin-bottom: 8px;
-      text-shadow: 0 0 40px rgba(212,175,55,0.7), 0 4px 16px rgba(0,0,0,0.8);
-    }
-    .victoria-sub {
-      font-family: 'Bebas Neue', sans-serif;
-      font-size: 1.4rem;
-      color: rgba(255,255,255,0.8);
-      letter-spacing: 3px;
-      margin-bottom: 28px;
-    }
-    .victoria-btn {
-      background: linear-gradient(135deg, var(--oro), #b8860b);
-      color: #1a0000;
-      border: none;
-      padding: 14px 36px;
-      border-radius: 30px;
-      font-family: 'Montserrat', sans-serif;
-      font-weight: 800;
-      font-size: 0.92rem;
-      letter-spacing: 1px;
-      cursor: pointer;
-      transition: all 0.2s;
-      box-shadow: 0 4px 20px rgba(212,175,55,0.5);
-    }
-    .victoria-btn:hover { transform: translateY(-2px) scale(1.03); box-shadow: 0 8px 28px rgba(212,175,55,0.7); }
-
-    /* ── CANVAS SERPENTINAS ───────────────────────────── */
-    #serpentinas-canvas {
-      position: fixed; inset: 0;
-      pointer-events: none; z-index: 99998;
-      display: none;
-    }
-
-    /* ── BOTÓN VICTORIA ADMIN ─────────────────────────── */
-    #btn-victoria {
-      display: none;
-      background: linear-gradient(135deg, var(--oro), #b8860b);
-      color: #1a0000;
-      border: none;
-      padding: 10px 22px;
-      border-radius: 20px;
-      font-family: 'Montserrat', sans-serif;
-      font-weight: 800;
-      font-size: 0.85rem;
-      letter-spacing: 0.5px;
-      cursor: pointer;
-      box-shadow: 0 3px 14px rgba(212,175,55,0.5);
-      transition: all 0.2s;
-      margin-left: 12px;
-    }
-    #btn-victoria:hover { transform: translateY(-1px); box-shadow: 0 6px 20px rgba(212,175,55,0.7); }
+    #modal-victoria { display:none; position:fixed; inset:0; z-index:99999; background:rgba(0,0,0,0.85); backdrop-filter:blur(8px); align-items:center; justify-content:center; }
+    #modal-victoria.visible { display:flex; animation:fadeInModal 0.5s ease; }
+    #serpentinas-canvas { position:fixed; inset:0; pointer-events:none; z-index:99998; display:none; }
+    .victoria-card { background:linear-gradient(145deg,#0a0000 0%,#3a0000 40%,#1a0a00 70%,#0a0000 100%); border:2px solid var(--oro); border-radius:24px; padding:48px 52px; max-width:500px; width:92%; text-align:center; box-shadow:0 0 80px rgba(212,175,55,0.4),0 20px 60px rgba(0,0,0,0.9); }
+    .victoria-emoji { font-size:4rem; display:block; margin-bottom:12px; animation:pulseEmoji 1s ease infinite alternate; }
+    @keyframes pulseEmoji { from{transform:scale(1);filter:drop-shadow(0 0 8px rgba(212,175,55,0.4))} to{transform:scale(1.15);filter:drop-shadow(0 0 24px rgba(212,175,55,0.9))} }
+    .victoria-titulo { font-family:'Bebas Neue',sans-serif; font-size:4.5rem; color:var(--oro); letter-spacing:4px; line-height:1; margin-bottom:8px; text-shadow:0 0 40px rgba(212,175,55,0.7); }
+    .victoria-sub { font-family:'Bebas Neue',sans-serif; font-size:1.4rem; color:rgba(255,255,255,0.8); letter-spacing:3px; margin-bottom:28px; }
+    .victoria-btn { background:linear-gradient(135deg,var(--oro),#b8860b); color:#1a0000; border:none; padding:14px 36px; border-radius:30px; font-family:'Montserrat',sans-serif; font-weight:800; font-size:0.92rem; letter-spacing:1px; cursor:pointer; transition:all 0.2s; box-shadow:0 4px 20px rgba(212,175,55,0.5); }
+    .victoria-btn:hover { transform:translateY(-2px) scale(1.03); }
   </style>
 </head>
 <body>
@@ -737,13 +476,13 @@ var IMG_SOLDADO   = 'iVBORw0KGgoAAAANSUhEUgAAAxAAAAVACAYAAADYp74wAAEAAElEQVR4nOz
 // ESTADO GLOBAL
 // ═══════════════════════════════════════════════════════
 var SESSION        = null;
+var PREV_ALERTAS   = null;
+var VICTORIA_VISTA   = null;
+var VICTORIA_CERRADA = false;
 var DASHBOARD_DATA = null;
 var OP_DATA        = null;
 var CD_INTERVAL    = null;
-var REFRESH_INTERVAL  = null;
-var PREV_ALERTAS      = null;   // Para detectar nuevas anomalías (string de IDs)
-var VICTORIA_VISTA    = null;   // Timestamp de la última victoria mostrada
-var VICTORIA_CERRADA  = false;  // El usuario cerró el modal manualmente
+var REFRESH_INTERVAL = null;
 var LAST_UPDATE    = null;
 var CACHE_DATA     = null;
 var CD_TARGET      = new Date('2026-03-08T21:00:00Z'); // 4PM Colombia = 9PM UTC
@@ -797,29 +536,26 @@ document.addEventListener('DOMContentLoaded', function() {
 // AUTH
 // ═══════════════════════════════════════════════════════
 
-
-function cerrarVisor() {
-  var m = document.getElementById('modal-visor');
-  if (m) { m.style.animation = 'fadeInModal 0.3s ease reverse'; setTimeout(function(){ m.classList.remove('visible'); }, 280); }
+/* ── IMG HERO ──────────────────────────────────────── */
+function iniciarHero() {
+  var loginBg = document.getElementById('login-bg');
+  if (loginBg && typeof IMG_HERO !== 'undefined') {
+    loginBg.src = 'data:image/jpeg;base64,' + IMG_HERO;
+  }
 }
 
-
-/* ══════════════════════════════════════════════════════
-   NOTIFICACIÓN + SONIDO DE ALERTA (solo coordinador)
-══════════════════════════════════════════════════════ */
+/* ── ALERTAS ──────────────────────────────────────── */
 function reproducirAlerta() {
   try {
     var ctx = new (window.AudioContext || window.webkitAudioContext)();
-    [440, 554, 659, 880].forEach(function(freq, i) {
-      var osc = ctx.createOscillator();
-      var gain = ctx.createGain();
+    [440,554,659,880].forEach(function(freq,i) {
+      var osc = ctx.createOscillator(), gain = ctx.createGain();
       osc.connect(gain); gain.connect(ctx.destination);
-      osc.type = 'square';
-      osc.frequency.value = freq;
-      gain.gain.setValueAtTime(0.3, ctx.currentTime + i * 0.18);
-      gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + i * 0.18 + 0.3);
-      osc.start(ctx.currentTime + i * 0.18);
-      osc.stop(ctx.currentTime + i * 0.18 + 0.3);
+      osc.type = 'square'; osc.frequency.value = freq;
+      gain.gain.setValueAtTime(0.3, ctx.currentTime + i*0.18);
+      gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + i*0.18 + 0.3);
+      osc.start(ctx.currentTime + i*0.18);
+      osc.stop(ctx.currentTime + i*0.18 + 0.3);
     });
   } catch(e) {}
 }
@@ -839,119 +575,72 @@ function cerrarNotif() {
   if (n) n.classList.remove('visible');
 }
 
-/* ══════════════════════════════════════════════════════
-   DETECTOR DE NUEVAS ALERTAS (en cada refresh)
-══════════════════════════════════════════════════════ */
 function detectarNuevasAlertas(data) {
-  if (!SESSION || SESSION.rol !== 'coordinador') return; // solo admin
+  if (!SESSION || SESSION.rol !== 'coordinador') return;
   var alertas = data.alertas || [];
-  // Construir set de IDs únicos para comparar (operador+municipio+mesa+tipo)
   var ids = alertas.map(function(a) {
-    return (a.operador||'') + '|' + (a.municipio||'') + '|' + (a.mesa||'') + '|' + (a.tipo||'');
+    return (a.operador||'')+'|'+(a.municipio||'')+'|'+(a.mesa||'')+'|'+(a.tipo||'');
   });
   var idsStr = ids.join(';;');
-  if (PREV_ALERTAS === null) {
-    PREV_ALERTAS = idsStr; // primera carga: guardar estado sin notificar
-    return;
-  }
-  if (idsStr === PREV_ALERTAS) return; // sin cambios
-  // Detectar cuáles son nuevas
+  if (PREV_ALERTAS === null) { PREV_ALERTAS = idsStr; return; }
+  if (idsStr === PREV_ALERTAS) return;
   var prevSet = PREV_ALERTAS.split(';;');
   var nuevas = ids.filter(function(id) { return prevSet.indexOf(id) === -1; });
   if (nuevas.length > 0) {
     var textos = nuevas.map(function(id) {
       var idx = ids.indexOf(id);
       var a = alertas[idx];
-      return (a.operador||'') + ' — ' + (a.tipo === 'ANOMALIA' ? 'Anomalía' : 'Observación') +
-             (a.detalle ? ': ' + a.detalle : '') +
-             (a.municipio ? ' (' + a.municipio + ')' : '');
+      return (a.operador||'') + ' — ' + (a.tipo === 'ANOMALIA' ? 'Anomalia' : 'Observacion') +
+             (a.detalle ? ': ' + a.detalle : '') + (a.municipio ? ' (' + a.municipio + ')' : '');
     });
     mostrarNotifAlerta(textos.join(' | '));
   }
   PREV_ALERTAS = idsStr;
 }
 
-
-/* ══════════════════════════════════════════════════════
-   MODAL CONFIRMACIÓN GUARDAR MESA
-══════════════════════════════════════════════════════ */
-var _pendingGuardar = null; // guarda los args mientras el modal está abierto
-
-
-/* ══════════════════════════════════════════════════════
-   VICTORIA — SERPENTINAS + MODAL
-══════════════════════════════════════════════════════ */
-var _serpentinaInterval = null;
-
+/* ── VICTORIA ─────────────────────────────────────── */
 function lanzarSerpentinas() {
   var canvas = document.getElementById('serpentinas-canvas');
   if (!canvas) return;
   canvas.style.display = 'block';
-  canvas.width  = window.innerWidth;
-  canvas.height = window.innerHeight;
+  canvas.width = window.innerWidth; canvas.height = window.innerHeight;
   var ctx = canvas.getContext('2d');
-  var colors = ['#D4AF37','#FFD700','#FF0000','#FFFFFF','#FF6B6B','#FFF176','#FF4444','#FFFDE7'];
+  var colors = ['#D4AF37','#FFD700','#FF0000','#FFFFFF','#FF6B6B','#FFF176'];
   var particles = [];
-
   for (var i = 0; i < 220; i++) {
     particles.push({
-      x:     Math.random() * canvas.width,
-      y:     -Math.random() * canvas.height,
-      w:     Math.random() * 12 + 4,
-      h:     Math.random() * 6 + 2,
-      color: colors[Math.floor(Math.random() * colors.length)],
-      vx:    (Math.random() - 0.5) * 3,
-      vy:    Math.random() * 4 + 1.5,
-      angle: Math.random() * 360,
-      spin:  (Math.random() - 0.5) * 7,
-      wave:  Math.random() * 2,
-      waveS: Math.random() * 0.05 + 0.02
+      x:Math.random()*canvas.width, y:-Math.random()*canvas.height,
+      w:Math.random()*12+4, h:Math.random()*6+2,
+      color:colors[Math.floor(Math.random()*colors.length)],
+      vx:(Math.random()-0.5)*3, vy:Math.random()*4+1.5,
+      angle:Math.random()*360, spin:(Math.random()-0.5)*7,
+      wave:Math.random()*2, waveS:Math.random()*0.05+0.02
     });
   }
-
   var frame = 0;
   function draw() {
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    ctx.clearRect(0,0,canvas.width,canvas.height);
     particles.forEach(function(p) {
-      ctx.save();
-      ctx.translate(p.x, p.y);
-      ctx.rotate(p.angle * Math.PI / 180);
-      ctx.fillStyle = p.color;
-      ctx.beginPath();
-      ctx.ellipse(0, 0, p.w / 2, p.h / 2, 0, 0, Math.PI * 2);
-      ctx.fill();
-      ctx.restore();
-      p.x  += p.vx + Math.sin(frame * p.waveS) * p.wave;
-      p.y  += p.vy;
-      p.angle += p.spin;
-      if (p.y > canvas.height + 20) {
-        p.y = -20; p.x = Math.random() * canvas.width;
-      }
+      ctx.save(); ctx.translate(p.x,p.y); ctx.rotate(p.angle*Math.PI/180);
+      ctx.fillStyle = p.color; ctx.beginPath();
+      ctx.ellipse(0,0,p.w/2,p.h/2,0,0,Math.PI*2); ctx.fill(); ctx.restore();
+      p.x += p.vx + Math.sin(frame*p.waveS)*p.wave;
+      p.y += p.vy; p.angle += p.spin;
+      if (p.y > canvas.height+20) { p.y=-20; p.x=Math.random()*canvas.width; }
     });
     frame++;
     if (document.getElementById('modal-victoria').classList.contains('visible')) {
       requestAnimationFrame(draw);
     } else {
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
-      canvas.style.display = 'none';
+      ctx.clearRect(0,0,canvas.width,canvas.height);
+      canvas.style.display='none';
     }
   }
   draw();
 }
 
-function activarVictoria() {
-  // Escribir en Sheet para broadcast
-  apiGet({ action: 'setVictoria', estado: 'on' }, function(data, err) {
-    if (!err && data && data.ok) {
-      mostrarModalVictoria(data.timestamp);
-    }
-  });
-}
-
 function mostrarModalVictoria(timestamp) {
-  // Si ya cerró este timestamp, no volver a mostrar
   if (timestamp && VICTORIA_VISTA === timestamp && VICTORIA_CERRADA) return;
-  // Si es un timestamp nuevo, resetear el flag de cerrada
   if (timestamp && VICTORIA_VISTA !== timestamp) {
     VICTORIA_VISTA = timestamp;
     VICTORIA_CERRADA = false;
@@ -963,62 +652,65 @@ function mostrarModalVictoria(timestamp) {
   }
 }
 
+function activarVictoria() {
+  apiGet({ action: 'setVictoria', estado: 'on' }, function(data, err) {
+    if (!err && data && data.ok) {
+      mostrarModalVictoria(data.timestamp);
+    }
+  });
+}
+
 function cerrarVictoria() {
+  VICTORIA_CERRADA = true;
   var m = document.getElementById('modal-victoria');
   if (m) {
     m.style.animation = 'fadeInModal 0.3s ease reverse';
-    setTimeout(function() {
-      m.classList.remove('visible');
-      m.style.animation = '';
-    }, 280);
+    setTimeout(function() { m.classList.remove('visible'); m.style.animation=''; }, 280);
   }
-  // Marcar como cerrada para no repetir con este timestamp
-  VICTORIA_CERRADA = true;
-  // Si es admin, apagar el broadcast en el Sheet
   if (SESSION && SESSION.rol === 'coordinador') {
     apiGet({ action: 'setVictoria', estado: 'off' }, function() {});
   }
 }
 
+/* ── MODALES BIENVENIDA ───────────────────────────── */
+function cerrarBienvenida() {
+  var m = document.getElementById('modal-bienvenida');
+  if (m) { m.style.animation='fadeInModal 0.3s ease reverse'; setTimeout(function(){ m.classList.remove('visible'); m.style.animation=''; },280); }
+}
+
+function cerrarVisor() {
+  var m = document.getElementById('modal-visor');
+  if (m) { m.style.animation='fadeInModal 0.3s ease reverse'; setTimeout(function(){ m.classList.remove('visible'); m.style.animation=''; },280); }
+}
+
+/* ── CONFIRMACION GUARDAR ─────────────────────────── */
+var _pendingGuardar = null;
 
 function pedirConfirmacionGuardar(pi, mi, mesa) {
   var mid = 'mesa-' + pi + '-' + mi;
   var row = document.getElementById(mid);
   if (!row) { guardarMesaReal(pi, mi, mesa); return; }
-
-  var campos = {
-    'Julián':  null, 'David': null, 'Stiven': null, 'Lista': null
-  };
-  var fieldsMap = { votos_julian:'Julián', votos_david:'David', votos_stiven:'Stiven', votos_lista:'Lista' };
+  var campos = {};
+  var fieldsMap = { votos_julian:'Julian', votos_david:'David', votos_stiven:'Stiven', votos_lista:'Lista' };
   var hayDatos = false;
-
   row.querySelectorAll('[data-field]').forEach(function(el) {
     var label = fieldsMap[el.getAttribute('data-field')];
     if (label && el.value !== '') { campos[label] = el.value; hayDatos = true; }
   });
-
-  if (!hayDatos) { guardarMesaReal(pi, mi, mesa); return; } // sin datos, guardar directo
-
-  // Llenar modal
-  document.getElementById('conf-mesa-label').textContent = 'Mesa ' + (mesa.mesa || (mi + 1)) + ' — ' + (mesa.nombre || '');
+  if (!hayDatos) { guardarMesaReal(pi, mi, mesa); return; }
+  document.getElementById('conf-mesa-label').textContent = 'Mesa ' + (mesa.mesa||(mi+1)) + ' — ' + (mesa.nombre||'');
   var html = '';
   Object.keys(campos).forEach(function(k) {
-    if (campos[k] !== null) {
-      html += '<div class="confirmar-fila"><span class="cf-label">Votos ' + k + '</span><span class="cf-valor">' + campos[k] + '</span></div>';
-    }
+    html += '<div class="confirmar-fila"><span class="cf-label">Votos ' + k + '</span><span class="cf-valor">' + campos[k] + '</span></div>';
   });
-  document.getElementById('conf-datos').innerHTML = html || '<div class="confirmar-fila"><span class="cf-label">Sin votos ingresados</span></div>';
-
-  _pendingGuardar = { pi: pi, mi: mi, mesa: mesa };
+  document.getElementById('conf-datos').innerHTML = html;
+  _pendingGuardar = { pi:pi, mi:mi, mesa:mesa };
   document.getElementById('modal-confirmar').classList.add('visible');
 }
 
 function confirmarGuardar() {
   document.getElementById('modal-confirmar').classList.remove('visible');
-  if (_pendingGuardar) {
-    guardarMesaReal(_pendingGuardar.pi, _pendingGuardar.mi, _pendingGuardar.mesa);
-    _pendingGuardar = null;
-  }
+  if (_pendingGuardar) { guardarMesaReal(_pendingGuardar.pi, _pendingGuardar.mi, _pendingGuardar.mesa); _pendingGuardar=null; }
 }
 
 function cancelarGuardar() {
@@ -1026,10 +718,6 @@ function cancelarGuardar() {
   _pendingGuardar = null;
 }
 
-function cerrarBienvenida() {
-  var m = document.getElementById('modal-bienvenida');
-  if (m) { m.style.animation = 'fadeInModal 0.3s ease reverse'; setTimeout(function(){ m.classList.remove('visible'); }, 280); }
-}
 
 function login() {
   var u = document.getElementById('inp-usuario').value.trim();
@@ -1043,46 +731,33 @@ function login() {
   }
   SESSION = { usuario:u, rol:c.rol, num:c.num };
   document.getElementById('login-screen').style.display = 'none';
-  // Mostrar modal de bienvenida
-  var cred = CREDS[u];
-  var modal = document.getElementById('modal-bienvenida');
-  var bvNombre = document.getElementById('bv-nombre');
-  var bvInfo = document.getElementById('bv-info');
-  var modalVisor = document.getElementById('modal-visor');
-  if (modalVisor && cred && cred.rol === 'visor') { modalVisor.classList.add('visible'); }
-  if (modal && bvNombre && cred && cred.rol !== "coordinador" && cred.rol !== 'visor') {
-    bvNombre.textContent = u.charAt(0).toUpperCase() + u.slice(1);
-    var rol = cred.rol === 'coordinador' ? 'Coordinador/a General' : 'Operador/a #' + cred.num;
-    var infoTxt = 'Rol: ' + rol + '\n';
-    if (cred.rol !== 'coordinador') {
-      infoTxt = 'Recuerda registrar los votos de cada mesa en tu puesto asignado. Ante cualquier novedad, repórtala en el campo de anomalías.';
-    } else {
-      infoTxt = 'Acceso completo al <strong>Centro de Monitoreo Electoral</strong>.<br>Puedes consultar el avance de todos los operadores y municipios en tiempo real.';
+  // Modales bienvenida
+  if (c.rol === 'visor') {
+    var mv = document.getElementById('modal-visor');
+    if (mv) mv.classList.add('visible');
+  } else if (c.rol === 'operador') {
+    var mb = document.getElementById('modal-bienvenida');
+    var bvNombre = document.getElementById('bv-nombre');
+    var bvInfo = document.getElementById('bv-info');
+    if (mb && bvNombre) {
+      bvNombre.textContent = u.charAt(0).toUpperCase() + u.slice(1);
+      bvInfo.innerHTML = 'Recuerda registrar los votos de cada mesa en tu puesto asignado. Ante cualquier novedad, reportala en el campo de anomalias.';
+      mb.classList.add('visible');
     }
-    bvInfo.innerHTML = infoTxt;
-    modal.classList.add('visible');
   }
   document.getElementById('app').style.display = 'block';
   document.getElementById('user-label').textContent = u + ' · ' + (c.rol === 'coordinador' ? 'Coordinador' : c.rol === 'visor' ? 'Vista General' : 'Operador #' + c.num);
   iniciarTemporizador();
-  if (c.rol === 'coordinador' || c.rol === 'visor') { cargarDashboard(); iniciarAutoRefresh(); }
+  if (c.rol === 'coordinador') { cargarDashboard(); iniciarAutoRefresh(); }
   else {
     cargarVistaOperador(SESSION.num, false);
     // Sincronizar timer cada 30s para operadores
     setInterval(sincronizarTimer, 30000);
   }
-  // Verificar victoria cada 20s para TODOS los roles
-  setInterval(function() {
-    if (SESSION) {
-      apiGet({ action: 'getVictoria' }, function(data, err) {
-        if (!err && data && data.victoria) mostrarModalVictoria(data.timestamp);
-      });
-    }
-  }, 20000);
 }
 
 function logout() {
-  SESSION = null; DASHBOARD_DATA = null; OP_DATA = null; PREV_ALERTAS = null;
+  SESSION = null; DASHBOARD_DATA = null; OP_DATA = null; PREV_ALERTAS = null; VICTORIA_VISTA = null; VICTORIA_CERRADA = false;
   if (CD_INTERVAL) { clearInterval(CD_INTERVAL); CD_INTERVAL = null; }
   if (REFRESH_INTERVAL) { clearInterval(REFRESH_INTERVAL); REFRESH_INTERVAL = null; }
   document.getElementById('countdown-widget').style.display = 'none';
@@ -1176,7 +851,6 @@ function cargarDashboard(silencioso) {
     DASHBOARD_DATA = data;
     CACHE_DATA = data;
     LAST_UPDATE = new Date();
-    detectarNuevasAlertas(data);
     renderDashboard(data);
   });
 }
@@ -1207,7 +881,8 @@ function renderDashboard(data) {
     { id:'tab-municipios', label:'🗺️ Municipios' },
     { id:'tab-operadores', label:'👥 Operadores' },
     { id:'tab-alertas',    label:'⚠️ Alertas (' + data.alertas.length + ')' },
-    { id:'tab-informes',   label:'📄 Informes', soloAdmin: true }
+    { id:'tab-informes', label:'📄 Informes', soloAdmin: true },
+    { id:'tab-informes', label:'📄 Informes', soloAdmin: true }
   ];
 
   tabDefs.forEach(function(t, i) {
@@ -1240,8 +915,6 @@ function renderDashboard(data) {
   rightSide.appendChild(lastUpd);
   rightSide.appendChild(autoTag);
   rightSide.appendChild(refreshBtn);
-
-
 
   topBar.appendChild(tabsEl);
   topBar.appendChild(rightSide);
@@ -1494,16 +1167,14 @@ function renderDashboard(data) {
   }, 100);
   tabInf.appendChild(panelTimer);
 
-  // ── Panel Victoria ──────────────────────────────────
+  // Panel victoria
   var panelVictoria = document.createElement('div');
   panelVictoria.className = 'panel';
-  panelVictoria.style.cssText = 'margin-top:20px; border: 2px solid rgba(212,175,55,0.4); background: linear-gradient(135deg, rgba(212,175,55,0.05), transparent);';
-  panelVictoria.innerHTML =
-    '<h3 style="color:var(--oro);">🏆 BOTÓN DE VICTORIA</h3>' +
-    '<p style="font-size:0.85rem;color:var(--texto2);margin-bottom:20px;">Actívalo solo en caso de ganar. Mostrará un mensaje especial a todos los usuarios conectados.</p>';
+  panelVictoria.style.cssText = 'margin-top:20px;border:2px solid rgba(212,175,55,0.4);background:linear-gradient(135deg,rgba(212,175,55,0.05),transparent);';
+  panelVictoria.innerHTML = '<h3 style="color:var(--oro);">BOTON DE VICTORIA</h3><p style="font-size:0.85rem;color:var(--texto2);margin-bottom:20px;">Activalo solo en caso de ganar. Aparecera un mensaje a todos los usuarios conectados.</p>';
   var btnVictoria = document.createElement('button');
-  btnVictoria.textContent = '🏆 ¡ACTIVAR VICTORIA!';
-  btnVictoria.style.cssText = 'background:linear-gradient(135deg,#D4AF37,#b8860b);color:#1a0000;border:none;padding:14px 32px;border-radius:25px;font-family:Montserrat,sans-serif;font-weight:800;font-size:1rem;letter-spacing:1px;cursor:pointer;box-shadow:0 4px 20px rgba(212,175,55,0.5);transition:all 0.2s;width:100%;';
+  btnVictoria.textContent = 'ACTIVAR VICTORIA';
+  btnVictoria.style.cssText = 'background:linear-gradient(135deg,#D4AF37,#b8860b);color:#1a0000;border:none;padding:14px 32px;border-radius:25px;font-family:Montserrat,sans-serif;font-weight:800;font-size:1rem;cursor:pointer;width:100%;';
   btnVictoria.addEventListener('click', activarVictoria);
   panelVictoria.appendChild(btnVictoria);
   tabInf.appendChild(panelVictoria);
@@ -1536,7 +1207,7 @@ function switchTab(el) {
   var tabId = el.getAttribute('data-tab');
   document.querySelectorAll('.tab').forEach(function(t) { t.classList.remove('active'); });
   el.classList.add('active');
-  ['tab-resumen','tab-municipios','tab-operadores','tab-alertas',(SESSION && SESSION.rol !== 'visor' ? 'tab-informes' : null)].filter(Boolean).forEach(function(id) {
+  ['tab-resumen','tab-municipios','tab-operadores','tab-alertas','tab-informes'].forEach(function(id) {
     var el = document.getElementById(id);
     if (el) el.style.display = id === tabId ? 'block' : 'none';
   });
@@ -1982,7 +1653,6 @@ function controlTimer(cmd) {
 
 // ── Los operadores consultan el estado del timer cada 30s ──
 function sincronizarTimer() {
-
   if (!SESSION || SESSION.rol === 'coordinador') return;
   apiGet({ action: 'getTimerState' }, function(data, err) {
     if (err || !data || !data.ok) return;
@@ -2168,15 +1838,11 @@ function reiniciarPuesto(pi, puesto) {
 
 </script>
 
-
-
-
 <!-- CANVAS SERPENTINAS -->
 <canvas id="serpentinas-canvas"></canvas>
 
 <!-- MODAL VICTORIA -->
 <div id="modal-victoria">
-  <canvas id="serpentinas-canvas-front" style="position:fixed;inset:0;pointer-events:none;z-index:99998;display:none;"></canvas>
   <div class="victoria-card">
     <span class="victoria-emoji">🏆</span>
     <div class="victoria-titulo">¡GANAMOS!</div>
@@ -2185,8 +1851,8 @@ function reiniciarPuesto(pi, puesto) {
   </div>
 </div>
 
-<!-- MODAL CONFIRMACIÓN GUARDAR -->
-<div id="modal-confirmar">
+<!-- MODAL CONFIRMACION GUARDAR -->
+<div id="modal-confirmar" class="modal-overlay">
   <div class="confirmar-card">
     <div class="confirmar-icon">💾</div>
     <div class="confirmar-titulo">¿Guardar votos?</div>
@@ -2194,36 +1860,35 @@ function reiniciarPuesto(pi, puesto) {
     <div class="confirmar-datos" id="conf-datos"></div>
     <div class="confirmar-btns">
       <button class="confirmar-btn-no" onclick="cancelarGuardar()">Cancelar</button>
-      <button class="confirmar-btn-si" onclick="confirmarGuardar()">✔ Sí, guardar</button>
+      <button class="confirmar-btn-si" onclick="confirmarGuardar()">Sí, guardar</button>
     </div>
   </div>
 </div>
-<!-- MODAL BIENVENIDA VISOR -->
-<div id="modal-visor">
-  <div class="bienvenida-card">
-    <div class="bienvenida-icon">⚔️</div>
-    <div class="bienvenida-saludo">Bienvenido</div>
-    <div class="bienvenida-nombre">Julián</div>
-    <div class="bienvenida-info">
-      En este visor podrás ver el avance que el equipo de monitoreo realiza en tiempo real, con una actualización cada 5 minutos.<br><br>
-      Si se presenta cualquier duda, comunícate con el equipo.
-    </div>
-    <div class="bienvenida-grito">¡Vamos a ganar!</div>
-    <button class="bienvenida-btn" onclick="cerrarVisor()">¡Vamos con toda, somos la Fuerza Renaciente! 🔴</button>
-  </div>
-</div>
-<!-- MODAL BIENVENIDA -->
-<div id="modal-bienvenida">
+
+<!-- MODAL BIENVENIDA OPERADORES -->
+<div id="modal-bienvenida" class="modal-overlay">
   <div class="bienvenida-card">
     <div class="bienvenida-icon">👋</div>
     <div class="bienvenida-saludo">Bienvenido</div>
     <div class="bienvenida-nombre" id="bv-nombre">-</div>
-    <div class="bienvenida-info" id="bv-info">Cargando información...</div>
+    <div class="bienvenida-info" id="bv-info"></div>
     <button class="bienvenida-btn" onclick="cerrarBienvenida()">¡Vamos con toda, somos la Fuerza Renaciente! 🔴</button>
   </div>
 </div>
 
-<!-- NOTIFICACIÓN ALERTA NUEVA -->
+<!-- MODAL BIENVENIDA VISOR JULIAN -->
+<div id="modal-visor" class="modal-overlay">
+  <div class="bienvenida-card">
+    <div class="bienvenida-icon">⚔️</div>
+    <div class="bienvenida-saludo">Bienvenido</div>
+    <div class="bienvenida-nombre">Julián</div>
+    <div class="bienvenida-info">En este visor podrás ver el avance que el equipo de monitoreo realiza en tiempo real, con una actualización cada 5 minutos.<br><br>Si se presenta cualquier duda, comunícate con el equipo.</div>
+    <div style="font-family:'Bebas Neue',sans-serif;font-size:1.3rem;color:var(--oro);letter-spacing:1.5px;margin-bottom:20px;">¡Vamos a ganar!</div>
+    <button class="bienvenida-btn" onclick="cerrarVisor()">¡Vamos con toda, somos la Fuerza Renaciente! 🔴</button>
+  </div>
+</div>
+
+<!-- NOTIFICACION ALERTA -->
 <div id="notif-alerta">
   <button class="notif-close" onclick="cerrarNotif()">✕</button>
   <div class="notif-titulo">⚠️ Nueva Anomalía</div>
