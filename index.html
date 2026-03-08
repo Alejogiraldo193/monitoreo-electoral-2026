@@ -938,8 +938,17 @@ function lanzarSerpentinas() {
 }
 
 function activarVictoria() {
+  // Escribir en Sheet para broadcast
+  apiGet({ action: 'setVictoria', estado: 'on' }, function(data, err) {
+    if (!err && data && data.ok) {
+      mostrarModalVictoria();
+    }
+  });
+}
+
+function mostrarModalVictoria() {
   var m = document.getElementById('modal-victoria');
-  if (m) {
+  if (m && !m.classList.contains('visible')) {
     m.classList.add('visible');
     lanzarSerpentinas();
   }
@@ -953,6 +962,10 @@ function cerrarVictoria() {
       m.classList.remove('visible');
       m.style.animation = '';
     }, 280);
+  }
+  // Si es admin, apagar el broadcast
+  if (SESSION && SESSION.rol === 'coordinador') {
+    apiGet({ action: 'setVictoria', estado: 'off' }, function() {});
   }
 }
 
@@ -1047,6 +1060,14 @@ function login() {
     // Sincronizar timer cada 30s para operadores
     setInterval(sincronizarTimer, 30000);
   }
+  // Verificar victoria cada 20s para TODOS los roles
+  setInterval(function() {
+    if (SESSION) {
+      apiGet({ action: 'getVictoria' }, function(data, err) {
+        if (!err && data && data.victoria) mostrarModalVictoria();
+      });
+    }
+  }, 20000);
 }
 
 function logout() {
@@ -1154,6 +1175,12 @@ function iniciarAutoRefresh() {
   REFRESH_INTERVAL = setInterval(function() {
     if (SESSION && (SESSION.rol === 'coordinador' || SESSION.rol === 'visor')) {
       cargarDashboard(true); // silencioso: no muestra spinner
+    }
+    // Verificar victoria para todos los roles
+    if (SESSION) {
+      apiGet({ action: 'getVictoria' }, function(data, err) {
+        if (!err && data && data.victoria) mostrarModalVictoria();
+      });
     }
   }, 5 * 60 * 1000); // cada 5 minutos
 }
@@ -1950,6 +1977,12 @@ function controlTimer(cmd) {
 
 // ── Los operadores consultan el estado del timer cada 30s ──
 function sincronizarTimer() {
+  // Verificar victoria
+  if (SESSION) {
+    apiGet({ action: 'getVictoria' }, function(data, err) {
+      if (!err && data && data.victoria) mostrarModalVictoria();
+    });
+  }
   if (!SESSION || SESSION.rol === 'coordinador') return;
   apiGet({ action: 'getTimerState' }, function(data, err) {
     if (err || !data || !data.ok) return;
