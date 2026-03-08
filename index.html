@@ -588,7 +588,7 @@ var DASHBOARD_DATA = null;
 var OP_DATA        = null;
 var CD_INTERVAL    = null;
 var REFRESH_INTERVAL  = null;
-var PREV_ALERTAS      = null;   // Para detectar nuevas anomalías
+var PREV_ALERTAS      = null;   // Para detectar nuevas anomalías (string de IDs)
 var LAST_UPDATE    = null;
 var CACHE_DATA     = null;
 var CD_TARGET      = new Date('2026-03-08T21:00:00Z'); // 4PM Colombia = 9PM UTC
@@ -688,18 +688,32 @@ function cerrarNotif() {
    DETECTOR DE NUEVAS ALERTAS (en cada refresh)
 ══════════════════════════════════════════════════════ */
 function detectarNuevasAlertas(data) {
-  if (!SESSION || SESSION.rol !== 'coordinador') return; // solo admin recibe alerta
-  var total = data.alertas ? data.alertas.length : 0;
-  if (PREV_ALERTAS === null) { PREV_ALERTAS = total; return; } // primera carga, solo guardar
-  if (total > PREV_ALERTAS) {
-    var diff = total - PREV_ALERTAS;
-    var nuevas = data.alertas.slice(data.alertas.length - diff); // las más recientes al final
-    var txt = nuevas.map(function(a){
-      return (a.operador || '') + ': ' + (a.anomalia || a.texto || a.tipo || 'Nueva anomalía');
-    }).join(' | ');
-    mostrarNotifAlerta(txt);
+  if (!SESSION || SESSION.rol !== 'coordinador') return; // solo admin
+  var alertas = data.alertas || [];
+  // Construir set de IDs únicos para comparar (operador+municipio+mesa+tipo)
+  var ids = alertas.map(function(a) {
+    return (a.operador||'') + '|' + (a.municipio||'') + '|' + (a.mesa||'') + '|' + (a.tipo||'');
+  });
+  var idsStr = ids.join(';;');
+  if (PREV_ALERTAS === null) {
+    PREV_ALERTAS = idsStr; // primera carga: guardar estado sin notificar
+    return;
   }
-  PREV_ALERTAS = total;
+  if (idsStr === PREV_ALERTAS) return; // sin cambios
+  // Detectar cuáles son nuevas
+  var prevSet = PREV_ALERTAS.split(';;');
+  var nuevas = ids.filter(function(id) { return prevSet.indexOf(id) === -1; });
+  if (nuevas.length > 0) {
+    var textos = nuevas.map(function(id) {
+      var idx = ids.indexOf(id);
+      var a = alertas[idx];
+      return (a.operador||'') + ' — ' + (a.tipo === 'ANOMALIA' ? 'Anomalía' : 'Observación') +
+             (a.detalle ? ': ' + a.detalle : '') +
+             (a.municipio ? ' (' + a.municipio + ')' : '');
+    });
+    mostrarNotifAlerta(textos.join(' | '));
+  }
+  PREV_ALERTAS = idsStr;
 }
 
 function cerrarBienvenida() {
