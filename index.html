@@ -742,6 +742,7 @@ var OP_DATA        = null;
 var CD_INTERVAL    = null;
 var REFRESH_INTERVAL  = null;
 var PREV_ALERTAS      = null;   // Para detectar nuevas anomalías (string de IDs)
+var VICTORIA_VISTA    = null;   // Timestamp de la victoria ya vista por este usuario
 var LAST_UPDATE    = null;
 var CACHE_DATA     = null;
 var CD_TARGET      = new Date('2026-03-08T21:00:00Z'); // 4PM Colombia = 9PM UTC
@@ -941,14 +942,17 @@ function activarVictoria() {
   // Escribir en Sheet para broadcast
   apiGet({ action: 'setVictoria', estado: 'on' }, function(data, err) {
     if (!err && data && data.ok) {
-      mostrarModalVictoria();
+      mostrarModalVictoria(data.timestamp);
     }
   });
 }
 
-function mostrarModalVictoria() {
+function mostrarModalVictoria(timestamp) {
+  // Si ya vimos esta activación, no mostrar de nuevo
+  if (timestamp && VICTORIA_VISTA === timestamp) return;
   var m = document.getElementById('modal-victoria');
   if (m && !m.classList.contains('visible')) {
+    if (timestamp) VICTORIA_VISTA = timestamp;
     m.classList.add('visible');
     lanzarSerpentinas();
   }
@@ -963,6 +967,8 @@ function cerrarVictoria() {
       m.style.animation = '';
     }, 280);
   }
+  // Marcar como vista para no repetir
+  VICTORIA_VISTA = null; // reset para permitir futura activación
   // Si es admin, apagar el broadcast
   if (SESSION && SESSION.rol === 'coordinador') {
     apiGet({ action: 'setVictoria', estado: 'off' }, function() {});
@@ -1064,7 +1070,7 @@ function login() {
   setInterval(function() {
     if (SESSION) {
       apiGet({ action: 'getVictoria' }, function(data, err) {
-        if (!err && data && data.victoria) mostrarModalVictoria();
+        if (!err && data && data.victoria) mostrarModalVictoria(data.timestamp);
       });
     }
   }, 20000);
@@ -1179,7 +1185,7 @@ function iniciarAutoRefresh() {
     // Verificar victoria para todos los roles
     if (SESSION) {
       apiGet({ action: 'getVictoria' }, function(data, err) {
-        if (!err && data && data.victoria) mostrarModalVictoria();
+        if (!err && data && data.victoria) mostrarModalVictoria(data.timestamp);
       });
     }
   }, 5 * 60 * 1000); // cada 5 minutos
@@ -1980,7 +1986,7 @@ function sincronizarTimer() {
   // Verificar victoria
   if (SESSION) {
     apiGet({ action: 'getVictoria' }, function(data, err) {
-      if (!err && data && data.victoria) mostrarModalVictoria();
+      if (!err && data && data.victoria) mostrarModalVictoria(data.timestamp);
     });
   }
   if (!SESSION || SESSION.rol === 'coordinador') return;
