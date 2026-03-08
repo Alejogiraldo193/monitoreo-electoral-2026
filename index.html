@@ -742,7 +742,8 @@ var OP_DATA        = null;
 var CD_INTERVAL    = null;
 var REFRESH_INTERVAL  = null;
 var PREV_ALERTAS      = null;   // Para detectar nuevas anomalías (string de IDs)
-var VICTORIA_VISTA    = null;   // Timestamp de la victoria ya vista por este usuario
+var VICTORIA_VISTA    = null;   // Timestamp de la última victoria mostrada
+var VICTORIA_CERRADA  = false;  // El usuario cerró el modal manualmente
 var LAST_UPDATE    = null;
 var CACHE_DATA     = null;
 var CD_TARGET      = new Date('2026-03-08T21:00:00Z'); // 4PM Colombia = 9PM UTC
@@ -948,11 +949,15 @@ function activarVictoria() {
 }
 
 function mostrarModalVictoria(timestamp) {
-  // Si ya vimos esta activación, no mostrar de nuevo
-  if (timestamp && VICTORIA_VISTA === timestamp) return;
+  // Si ya cerró este timestamp, no volver a mostrar
+  if (timestamp && VICTORIA_VISTA === timestamp && VICTORIA_CERRADA) return;
+  // Si es un timestamp nuevo, resetear el flag de cerrada
+  if (timestamp && VICTORIA_VISTA !== timestamp) {
+    VICTORIA_VISTA = timestamp;
+    VICTORIA_CERRADA = false;
+  }
   var m = document.getElementById('modal-victoria');
-  if (m && !m.classList.contains('visible')) {
-    if (timestamp) VICTORIA_VISTA = timestamp;
+  if (m && !m.classList.contains('visible') && !VICTORIA_CERRADA) {
     m.classList.add('visible');
     lanzarSerpentinas();
   }
@@ -967,10 +972,9 @@ function cerrarVictoria() {
       m.style.animation = '';
     }, 280);
   }
-  // Marcar como vista para no repetir
-  // Mantener VICTORIA_VISTA con el timestamp actual para no repetir
-  // Solo se resetea cuando el admin activa una NUEVA victoria
-  // Si es admin, apagar el broadcast
+  // Marcar como cerrada para no repetir con este timestamp
+  VICTORIA_CERRADA = true;
+  // Si es admin, apagar el broadcast en el Sheet
   if (SESSION && SESSION.rol === 'coordinador') {
     apiGet({ action: 'setVictoria', estado: 'off' }, function() {});
   }
