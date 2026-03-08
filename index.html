@@ -303,9 +303,7 @@
     #login-screen::before {
       z-index: 1 !important;
       background: linear-gradient(135deg,
-        rgba(5,0,0,0.82) 0%,
-        rgba(80,0,0,0.65) 50%,
-        rgba(5,0,0,0.88) 100%
+        rgba(5,0,0,0.82) 0%, rgba(80,0,0,0.65) 50%, rgba(5,0,0,0.88) 100%
       ) !important;
     }
     .login-card {
@@ -324,6 +322,91 @@
     .form-group input { background: rgba(255,255,255,0.10) !important; border: 1px solid rgba(255,255,255,0.2) !important; color: #fff !important; }
     .form-group input::placeholder { color: rgba(255,255,255,0.35) !important; }
     .form-group input:focus { border-color: var(--oro) !important; background: rgba(255,255,255,0.15) !important; }
+
+    /* ── MODAL BIENVENIDA ──────────────────────────────── */
+    #modal-bienvenida {
+      display: none;
+      position: fixed; inset: 0; z-index: 9999;
+      background: rgba(0,0,0,0.75);
+      backdrop-filter: blur(6px);
+      align-items: center; justify-content: center;
+    }
+    #modal-bienvenida.visible { display: flex; animation: fadeInModal 0.4s ease; }
+    @keyframes fadeInModal {
+      from { opacity: 0; transform: scale(0.96); }
+      to   { opacity: 1; transform: scale(1); }
+    }
+    .bienvenida-card {
+      background: linear-gradient(145deg, #1a0000 0%, #3a0000 50%, #1a0000 100%);
+      border: 1px solid rgba(212,175,55,0.4);
+      border-radius: 20px;
+      padding: 40px 48px;
+      max-width: 480px;
+      width: 90%;
+      text-align: center;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.8), inset 0 1px 0 rgba(212,175,55,0.15);
+      position: relative;
+    }
+    .bienvenida-icon {
+      width: 72px; height: 72px;
+      background: var(--rojo);
+      border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      margin: 0 auto 20px;
+      font-size: 2rem;
+      box-shadow: 0 4px 20px rgba(139,0,0,0.5);
+    }
+    .bienvenida-saludo {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 1rem;
+      color: rgba(255,255,255,0.6);
+      letter-spacing: 3px;
+      text-transform: uppercase;
+      margin-bottom: 4px;
+    }
+    .bienvenida-nombre {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 2.6rem;
+      color: var(--oro);
+      letter-spacing: 2px;
+      line-height: 1;
+      margin-bottom: 16px;
+      text-shadow: 0 2px 12px rgba(212,175,55,0.3);
+    }
+    .bienvenida-info {
+      font-family: 'DM Sans', sans-serif;
+      font-size: 0.88rem;
+      color: rgba(255,255,255,0.75);
+      line-height: 1.6;
+      margin-bottom: 20px;
+      padding: 14px 16px;
+      background: rgba(255,255,255,0.05);
+      border-radius: 10px;
+      border: 1px solid rgba(255,255,255,0.08);
+    }
+    .bienvenida-grito {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 1.3rem;
+      color: var(--oro);
+      letter-spacing: 1.5px;
+      margin-bottom: 24px;
+      text-shadow: 0 2px 8px rgba(212,175,55,0.4);
+    }
+    .bienvenida-btn {
+      background: var(--rojo);
+      color: white;
+      border: none;
+      padding: 12px 36px;
+      border-radius: 30px;
+      font-family: 'Montserrat', sans-serif;
+      font-weight: 700;
+      font-size: 0.9rem;
+      letter-spacing: 1px;
+      cursor: pointer;
+      transition: all 0.2s;
+      box-shadow: 0 4px 16px rgba(139,0,0,0.4);
+    }
+    .bienvenida-btn:hover { background: var(--rojo-vivo); transform: translateY(-2px); }
   </style>
 </head>
 <body>
@@ -505,6 +588,12 @@ document.addEventListener('DOMContentLoaded', function() {
 // ═══════════════════════════════════════════════════════
 // AUTH
 // ═══════════════════════════════════════════════════════
+
+function cerrarBienvenida() {
+  var m = document.getElementById('modal-bienvenida');
+  if (m) { m.style.animation = 'fadeInModal 0.3s ease reverse'; setTimeout(function(){ m.classList.remove('visible'); }, 280); }
+}
+
 function login() {
   var u = document.getElementById('inp-usuario').value.trim();
   var p = document.getElementById('inp-password').value;
@@ -517,6 +606,23 @@ function login() {
   }
   SESSION = { usuario:u, rol:c.rol, num:c.num };
   document.getElementById('login-screen').style.display = 'none';
+  // Mostrar modal de bienvenida
+  var cred = CREDS[usr];
+  var modal = document.getElementById('modal-bienvenida');
+  var bvNombre = document.getElementById('bv-nombre');
+  var bvInfo = document.getElementById('bv-info');
+  if (modal && bvNombre && cred) {
+    bvNombre.textContent = usr.charAt(0).toUpperCase() + usr.slice(1);
+    var rol = cred.rol === 'coordinador' ? 'Coordinador/a General' : 'Operador/a #' + cred.num;
+    var infoTxt = 'Rol: ' + rol + '\n';
+    if (cred.rol !== 'coordinador') {
+      infoTxt = 'Estás ingresando como <strong>' + rol + '</strong>.<br>Recuerda registrar los votos de cada mesa en tu puesto asignado.<br>Ante cualquier novedad, repórtala en el campo de anomalías.';
+    } else {
+      infoTxt = 'Acceso completo al <strong>Centro de Monitoreo Electoral</strong>.<br>Puedes consultar el avance de todos los operadores y municipios en tiempo real.';
+    }
+    bvInfo.innerHTML = infoTxt;
+    modal.classList.add('visible');
+  }
   document.getElementById('app').style.display = 'block';
   document.getElementById('user-label').textContent = u + ' · ' + (c.rol === 'coordinador' ? 'Coordinador' : 'Operador #' + c.num);
   iniciarTemporizador();
@@ -1596,5 +1702,16 @@ function reiniciarPuesto(pi, puesto) {
 
 
 </script>
+
+<!-- MODAL BIENVENIDA -->
+<div id="modal-bienvenida">
+  <div class="bienvenida-card">
+    <div class="bienvenida-icon">👋</div>
+    <div class="bienvenida-saludo">Bienvenido/a al</div>
+    <div class="bienvenida-nombre" id="bv-nombre">-</div>
+    <div class="bienvenida-info" id="bv-info">Cargando información...</div>
+    <button class="bienvenida-btn" onclick="cerrarBienvenida()">¡Vamos con toda, somos la Fuerza Renaciente! 🔴</button>
+  </div>
+</div>
 </body>
 </html>
