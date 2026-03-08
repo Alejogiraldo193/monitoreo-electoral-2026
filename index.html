@@ -1205,19 +1205,18 @@ function renderDashboard(data) {
   refreshBtn.innerHTML = '⟳ Actualizar ahora';
   refreshBtn.addEventListener('click', function() { cargarDashboard(false); });
 
-  // Botón victoria solo para admin
+  rightSide.appendChild(lastUpd);
+  rightSide.appendChild(autoTag);
+  rightSide.appendChild(refreshBtn);
+
+  // Botón victoria solo para admin (después de agregar al DOM)
   if (SESSION && SESSION.rol === 'coordinador') {
     var btnV = document.createElement('button');
     btnV.id = 'btn-victoria';
     btnV.textContent = '🏆 ¡Ganamos!';
-    btnV.style.display = 'inline-block';
     btnV.addEventListener('click', activarVictoria);
-    refreshBtn.parentNode.appendChild(btnV);
+    rightSide.appendChild(btnV);
   }
-
-  rightSide.appendChild(lastUpd);
-  rightSide.appendChild(autoTag);
-  rightSide.appendChild(refreshBtn);
 
   topBar.appendChild(tabsEl);
   topBar.appendChild(rightSide);
