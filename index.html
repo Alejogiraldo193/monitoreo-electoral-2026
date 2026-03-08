@@ -458,6 +458,69 @@
     .notif-close  { position:absolute; top:8px; right:10px; background:none; border:none; color:white; font-size:1rem; cursor:pointer; }
 
     
+
+    /* ── MODAL CONFIRMACIÓN GUARDAR ───────────────────── */
+    #modal-confirmar {
+      display: none;
+      position: fixed; inset: 0; z-index: 9999;
+      background: rgba(0,0,0,0.6);
+      backdrop-filter: blur(4px);
+      align-items: center; justify-content: center;
+    }
+    #modal-confirmar.visible { display: flex; animation: fadeInModal 0.3s ease; }
+    .confirmar-card {
+      background: linear-gradient(145deg, #1a0000 0%, #2d0000 60%, #1a0000 100%);
+      border: 1px solid rgba(212,175,55,0.35);
+      border-radius: 18px;
+      padding: 32px 36px;
+      max-width: 420px;
+      width: 92%;
+      text-align: center;
+      box-shadow: 0 16px 48px rgba(0,0,0,0.7);
+    }
+    .confirmar-icon { font-size: 2.2rem; margin-bottom: 10px; }
+    .confirmar-titulo {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 1.6rem; color: var(--oro);
+      letter-spacing: 2px; margin-bottom: 6px;
+    }
+    .confirmar-subtitulo {
+      font-size: 0.82rem; color: rgba(255,255,255,0.55);
+      margin-bottom: 16px; letter-spacing: 0.5px;
+    }
+    .confirmar-datos {
+      background: rgba(255,255,255,0.06);
+      border: 1px solid rgba(255,255,255,0.1);
+      border-radius: 10px;
+      padding: 14px 16px;
+      margin-bottom: 20px;
+      text-align: left;
+    }
+    .confirmar-fila {
+      display: flex; justify-content: space-between;
+      padding: 5px 0; border-bottom: 1px solid rgba(255,255,255,0.06);
+      font-size: 0.85rem;
+    }
+    .confirmar-fila:last-child { border-bottom: none; }
+    .confirmar-fila .cf-label { color: rgba(255,255,255,0.55); }
+    .confirmar-fila .cf-valor { color: white; font-weight: 600; font-family: monospace; }
+    .confirmar-btns { display: flex; gap: 12px; justify-content: center; }
+    .confirmar-btn-si {
+      background: var(--rojo); color: white; border: none;
+      padding: 11px 28px; border-radius: 25px;
+      font-family: 'Montserrat', sans-serif; font-weight: 700;
+      font-size: 0.88rem; letter-spacing: 0.5px; cursor: pointer;
+      transition: all 0.2s; flex: 1;
+    }
+    .confirmar-btn-si:hover { background: var(--rojo-vivo); transform: translateY(-1px); }
+    .confirmar-btn-no {
+      background: transparent; color: rgba(255,255,255,0.6);
+      border: 1px solid rgba(255,255,255,0.2);
+      padding: 11px 28px; border-radius: 25px;
+      font-family: 'Montserrat', sans-serif; font-weight: 600;
+      font-size: 0.88rem; cursor: pointer; transition: all 0.2s; flex: 1;
+    }
+    .confirmar-btn-no:hover { border-color: rgba(255,255,255,0.5); color: white; }
   </style>
 </head>
 <body>
@@ -714,6 +777,57 @@ function detectarNuevasAlertas(data) {
     mostrarNotifAlerta(textos.join(' | '));
   }
   PREV_ALERTAS = idsStr;
+}
+
+
+/* ══════════════════════════════════════════════════════
+   MODAL CONFIRMACIÓN GUARDAR MESA
+══════════════════════════════════════════════════════ */
+var _pendingGuardar = null; // guarda los args mientras el modal está abierto
+
+function pedirConfirmacionGuardar(pi, mi, mesa) {
+  var mid = 'mesa-' + pi + '-' + mi;
+  var row = document.getElementById(mid);
+  if (!row) { guardarMesaReal(pi, mi, mesa); return; }
+
+  var campos = {
+    'Julián':  null, 'David': null, 'Stiven': null, 'Lista': null
+  };
+  var fieldsMap = { votos_julian:'Julián', votos_david:'David', votos_stiven:'Stiven', votos_lista:'Lista' };
+  var hayDatos = false;
+
+  row.querySelectorAll('[data-field]').forEach(function(el) {
+    var label = fieldsMap[el.getAttribute('data-field')];
+    if (label && el.value !== '') { campos[label] = el.value; hayDatos = true; }
+  });
+
+  if (!hayDatos) { guardarMesaReal(pi, mi, mesa); return; } // sin datos, guardar directo
+
+  // Llenar modal
+  document.getElementById('conf-mesa-label').textContent = 'Mesa ' + (mesa.mesa || (mi + 1)) + ' — ' + (mesa.nombre || '');
+  var html = '';
+  Object.keys(campos).forEach(function(k) {
+    if (campos[k] !== null) {
+      html += '<div class="confirmar-fila"><span class="cf-label">Votos ' + k + '</span><span class="cf-valor">' + campos[k] + '</span></div>';
+    }
+  });
+  document.getElementById('conf-datos').innerHTML = html || '<div class="confirmar-fila"><span class="cf-label">Sin votos ingresados</span></div>';
+
+  _pendingGuardar = { pi: pi, mi: mi, mesa: mesa };
+  document.getElementById('modal-confirmar').classList.add('visible');
+}
+
+function confirmarGuardar() {
+  document.getElementById('modal-confirmar').classList.remove('visible');
+  if (_pendingGuardar) {
+    guardarMesaReal(_pendingGuardar.pi, _pendingGuardar.mi, _pendingGuardar.mesa);
+    _pendingGuardar = null;
+  }
+}
+
+function cancelarGuardar() {
+  document.getElementById('modal-confirmar').classList.remove('visible');
+  _pendingGuardar = null;
 }
 
 function cerrarBienvenida() {
@@ -1449,7 +1563,7 @@ function renderVistaOperador(data, esLectura) {
         btnG.textContent = yaGuardado ? '✅ Guardado' : 'Guardar';
         btnG.id = 'btn-mesa-' + pi + '-' + mi;
         (function(pii, mii, m, btn) {
-          btn.addEventListener('click', function() { guardarMesa(pii, mii, m); });
+          btn.addEventListener('click', function() { pedirConfirmacionGuardar(pii, mii, m); });
           // Al editar cualquier campo, el badge vuelve a "Guardar"
           row.querySelectorAll('[data-field]').forEach(function(el) {
             el.addEventListener('input', function() {
@@ -1539,7 +1653,7 @@ function togglePuesto(pi) {
   v.classList.toggle('open', !open);
 }
 
-function guardarMesa(pi, mi, mesa) {
+function guardarMesaReal(pi, mi, mesa) {
   var mid   = 'mesa-' + pi + '-' + mi;
   var btnId = 'btn-mesa-' + pi + '-' + mi;
   var row   = document.getElementById(mid);
@@ -1834,6 +1948,20 @@ function reiniciarPuesto(pi, puesto) {
 </script>
 
 
+
+<!-- MODAL CONFIRMACIÓN GUARDAR -->
+<div id="modal-confirmar">
+  <div class="confirmar-card">
+    <div class="confirmar-icon">💾</div>
+    <div class="confirmar-titulo">¿Guardar votos?</div>
+    <div class="confirmar-subtitulo" id="conf-mesa-label">Mesa</div>
+    <div class="confirmar-datos" id="conf-datos"></div>
+    <div class="confirmar-btns">
+      <button class="confirmar-btn-no" onclick="cancelarGuardar()">Cancelar</button>
+      <button class="confirmar-btn-si" onclick="confirmarGuardar()">✔ Sí, guardar</button>
+    </div>
+  </div>
+</div>
 <!-- MODAL BIENVENIDA VISOR -->
 <div id="modal-visor">
   <div class="bienvenida-card">
