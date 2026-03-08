@@ -521,6 +521,96 @@
       font-size: 0.88rem; cursor: pointer; transition: all 0.2s; flex: 1;
     }
     .confirmar-btn-no:hover { border-color: rgba(255,255,255,0.5); color: white; }
+
+    /* ── MODAL VICTORIA ───────────────────────────────── */
+    #modal-victoria {
+      display: none;
+      position: fixed; inset: 0; z-index: 99999;
+      background: rgba(0,0,0,0.85);
+      backdrop-filter: blur(8px);
+      align-items: center; justify-content: center;
+      flex-direction: column;
+    }
+    #modal-victoria.visible { display: flex; animation: fadeInModal 0.5s ease; }
+    .victoria-card {
+      background: linear-gradient(145deg, #0a0000 0%, #3a0000 40%, #1a0a00 70%, #0a0000 100%);
+      border: 2px solid var(--oro);
+      border-radius: 24px;
+      padding: 48px 52px;
+      max-width: 500px;
+      width: 92%;
+      text-align: center;
+      box-shadow: 0 0 80px rgba(212,175,55,0.4), 0 20px 60px rgba(0,0,0,0.9);
+      position: relative;
+      z-index: 2;
+    }
+    .victoria-emoji {
+      font-size: 4rem;
+      display: block;
+      margin-bottom: 12px;
+      animation: pulseEmoji 1s ease infinite alternate;
+    }
+    @keyframes pulseEmoji {
+      from { transform: scale(1);    filter: drop-shadow(0 0 8px rgba(212,175,55,0.4)); }
+      to   { transform: scale(1.15); filter: drop-shadow(0 0 24px rgba(212,175,55,0.9)); }
+    }
+    .victoria-titulo {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 4.5rem;
+      color: var(--oro);
+      letter-spacing: 4px;
+      line-height: 1;
+      margin-bottom: 8px;
+      text-shadow: 0 0 40px rgba(212,175,55,0.7), 0 4px 16px rgba(0,0,0,0.8);
+    }
+    .victoria-sub {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 1.4rem;
+      color: rgba(255,255,255,0.8);
+      letter-spacing: 3px;
+      margin-bottom: 28px;
+    }
+    .victoria-btn {
+      background: linear-gradient(135deg, var(--oro), #b8860b);
+      color: #1a0000;
+      border: none;
+      padding: 14px 36px;
+      border-radius: 30px;
+      font-family: 'Montserrat', sans-serif;
+      font-weight: 800;
+      font-size: 0.92rem;
+      letter-spacing: 1px;
+      cursor: pointer;
+      transition: all 0.2s;
+      box-shadow: 0 4px 20px rgba(212,175,55,0.5);
+    }
+    .victoria-btn:hover { transform: translateY(-2px) scale(1.03); box-shadow: 0 8px 28px rgba(212,175,55,0.7); }
+
+    /* ── CANVAS SERPENTINAS ───────────────────────────── */
+    #serpentinas-canvas {
+      position: fixed; inset: 0;
+      pointer-events: none; z-index: 99998;
+      display: none;
+    }
+
+    /* ── BOTÓN VICTORIA ADMIN ─────────────────────────── */
+    #btn-victoria {
+      display: none;
+      background: linear-gradient(135deg, var(--oro), #b8860b);
+      color: #1a0000;
+      border: none;
+      padding: 10px 22px;
+      border-radius: 20px;
+      font-family: 'Montserrat', sans-serif;
+      font-weight: 800;
+      font-size: 0.85rem;
+      letter-spacing: 0.5px;
+      cursor: pointer;
+      box-shadow: 0 3px 14px rgba(212,175,55,0.5);
+      transition: all 0.2s;
+      margin-left: 12px;
+    }
+    #btn-victoria:hover { transform: translateY(-1px); box-shadow: 0 6px 20px rgba(212,175,55,0.7); }
   </style>
 </head>
 <body>
@@ -785,6 +875,88 @@ function detectarNuevasAlertas(data) {
 ══════════════════════════════════════════════════════ */
 var _pendingGuardar = null; // guarda los args mientras el modal está abierto
 
+
+/* ══════════════════════════════════════════════════════
+   VICTORIA — SERPENTINAS + MODAL
+══════════════════════════════════════════════════════ */
+var _serpentinaInterval = null;
+
+function lanzarSerpentinas() {
+  var canvas = document.getElementById('serpentinas-canvas');
+  if (!canvas) return;
+  canvas.style.display = 'block';
+  canvas.width  = window.innerWidth;
+  canvas.height = window.innerHeight;
+  var ctx = canvas.getContext('2d');
+  var colors = ['#D4AF37','#FFD700','#FF0000','#FFFFFF','#FF6B6B','#FFF176','#FF4444','#FFFDE7'];
+  var particles = [];
+
+  for (var i = 0; i < 220; i++) {
+    particles.push({
+      x:     Math.random() * canvas.width,
+      y:     -Math.random() * canvas.height,
+      w:     Math.random() * 12 + 4,
+      h:     Math.random() * 6 + 2,
+      color: colors[Math.floor(Math.random() * colors.length)],
+      vx:    (Math.random() - 0.5) * 3,
+      vy:    Math.random() * 4 + 1.5,
+      angle: Math.random() * 360,
+      spin:  (Math.random() - 0.5) * 7,
+      wave:  Math.random() * 2,
+      waveS: Math.random() * 0.05 + 0.02
+    });
+  }
+
+  var frame = 0;
+  function draw() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    particles.forEach(function(p) {
+      ctx.save();
+      ctx.translate(p.x, p.y);
+      ctx.rotate(p.angle * Math.PI / 180);
+      ctx.fillStyle = p.color;
+      ctx.beginPath();
+      ctx.ellipse(0, 0, p.w / 2, p.h / 2, 0, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.restore();
+      p.x  += p.vx + Math.sin(frame * p.waveS) * p.wave;
+      p.y  += p.vy;
+      p.angle += p.spin;
+      if (p.y > canvas.height + 20) {
+        p.y = -20; p.x = Math.random() * canvas.width;
+      }
+    });
+    frame++;
+    if (document.getElementById('modal-victoria').classList.contains('visible')) {
+      requestAnimationFrame(draw);
+    } else {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      canvas.style.display = 'none';
+    }
+  }
+  draw();
+}
+
+function activarVictoria() {
+  var m = document.getElementById('modal-victoria');
+  if (m) {
+    m.classList.add('visible');
+    lanzarSerpentinas();
+  }
+}
+
+function cerrarVictoria() {
+  var m = document.getElementById('modal-victoria');
+  if (m) {
+    m.style.animation = 'fadeInModal 0.3s ease reverse';
+    setTimeout(function() {
+      m.classList.remove('visible');
+      m.style.animation = '';
+    }, 280);
+  }
+}
+
+
 function pedirConfirmacionGuardar(pi, mi, mesa) {
   var mid = 'mesa-' + pi + '-' + mi;
   var row = document.getElementById(mid);
@@ -1032,6 +1204,16 @@ function renderDashboard(data) {
   refreshBtn.style.marginBottom = '0';
   refreshBtn.innerHTML = '⟳ Actualizar ahora';
   refreshBtn.addEventListener('click', function() { cargarDashboard(false); });
+
+  // Botón victoria solo para admin
+  if (SESSION && SESSION.rol === 'coordinador') {
+    var btnV = document.createElement('button');
+    btnV.id = 'btn-victoria';
+    btnV.textContent = '🏆 ¡Ganamos!';
+    btnV.style.display = 'inline-block';
+    btnV.addEventListener('click', activarVictoria);
+    refreshBtn.parentNode.appendChild(btnV);
+  }
 
   rightSide.appendChild(lastUpd);
   rightSide.appendChild(autoTag);
@@ -1948,6 +2130,21 @@ function reiniciarPuesto(pi, puesto) {
 </script>
 
 
+
+
+<!-- CANVAS SERPENTINAS -->
+<canvas id="serpentinas-canvas"></canvas>
+
+<!-- MODAL VICTORIA -->
+<div id="modal-victoria">
+  <canvas id="serpentinas-canvas-front" style="position:fixed;inset:0;pointer-events:none;z-index:99998;display:none;"></canvas>
+  <div class="victoria-card">
+    <span class="victoria-emoji">🏆</span>
+    <div class="victoria-titulo">¡GANAMOS!</div>
+    <div class="victoria-sub">Julián Rojas — La Fuerza Renaciente</div>
+    <button class="victoria-btn" onclick="cerrarVictoria()">Somos la Fuerza Renaciente 🔴</button>
+  </div>
+</div>
 
 <!-- MODAL CONFIRMACIÓN GUARDAR -->
 <div id="modal-confirmar">
