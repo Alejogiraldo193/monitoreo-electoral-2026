@@ -424,6 +424,67 @@
       margin-bottom: 20px;
       text-shadow: 0 2px 8px rgba(212,175,55,0.4);
     }
+
+    /* ── MODO OSCURO ──────────────────────────────────── */
+    body.dark { --fondo:#0d0d0d; --blanco:#1a1a1a; --texto:#e8e8e8; --texto2:#aaa; --borde:#333; }
+    body.dark .kpi-card { background:#1e1e1e; border-color:#333; }
+    body.dark .tabla-contenedor { background:#1a1a1a; }
+    body.dark table thead { background:#2a0000; }
+    body.dark .tab-btn { background:#1e1e1e; color:#aaa; }
+    body.dark .tab-btn.activo { background:var(--rojo); color:#fff; }
+    body.dark .puesto-card { background:#1e1e1e; border-color:#333; }
+    body.dark .mesa-row { background:#1a1a1a; border-color:#333; }
+    body.dark input[type=number] { background:#2a2a2a; color:#eee; border-color:#444; }
+
+    /* ── TOGGLE DARK MODE ─────────────────────────────── */
+    #dark-toggle {
+      position:fixed; bottom:24px; right:24px; z-index:1000;
+      width:44px; height:44px; border-radius:50%;
+      background:var(--rojo); color:white; border:none;
+      font-size:1.2rem; cursor:pointer;
+      box-shadow:0 4px 16px rgba(0,0,0,0.3);
+      transition:all 0.2s;
+    }
+    #dark-toggle:hover { transform:scale(1.1); }
+
+    /* ── BADGE ALERTA PARPADEANTE ─────────────────────── */
+    @keyframes parpadear {
+      0%,100% { opacity:1; transform:scale(1); }
+      50%      { opacity:0.4; transform:scale(1.15); }
+    }
+    .badge-nueva-alerta {
+      animation: parpadear 0.8s ease infinite;
+      background: #ff0000 !important;
+      color: white !important;
+    }
+
+    /* ── KPI PENDIENTES ──────────────────────────────── */
+    .kpi-pendientes-bar {
+      height:6px; border-radius:3px;
+      background: linear-gradient(90deg, var(--rojo), #ff6b6b);
+      margin-top:6px; transition: width 0.8s ease;
+    }
+
+    /* ── NOTIFICACIÓN FLOTANTE ALERTA ─────────────────── */
+    #notif-alerta {
+      display:none; position:fixed; top:20px; right:20px; z-index:9998;
+      background:#8B0000; color:white; border-radius:12px;
+      padding:14px 20px; max-width:320px;
+      box-shadow:0 8px 32px rgba(139,0,0,0.6);
+      border:1px solid rgba(255,100,100,0.4);
+      animation: slideInRight 0.4s ease;
+    }
+    #notif-alerta.visible { display:block; }
+    @keyframes slideInRight {
+      from { transform:translateX(120%); opacity:0; }
+      to   { transform:translateX(0);    opacity:1; }
+    }
+    .notif-titulo { font-family:"Bebas Neue",sans-serif; font-size:1.1rem; letter-spacing:1px; margin-bottom:4px; }
+    .notif-body   { font-size:0.82rem; opacity:0.9; line-height:1.4; }
+    .notif-close  { position:absolute; top:8px; right:10px; background:none; border:none; color:white; font-size:1rem; cursor:pointer; }
+
+    /* ── CONFETI ─────────────────────────────────────── */
+    #confeti-canvas { position:fixed; inset:0; pointer-events:none; z-index:9997; display:none; }
   </style>
 </head>
 <body>
@@ -553,7 +614,9 @@ var SESSION        = null;
 var DASHBOARD_DATA = null;
 var OP_DATA        = null;
 var CD_INTERVAL    = null;
-var REFRESH_INTERVAL = null;
+var REFRESH_INTERVAL  = null;
+var PREV_ALERTAS      = null;   // Para detectar nuevas anomalías
+var DARK_MODE         = false;  // Modo oscuro
 var LAST_UPDATE    = null;
 var CACHE_DATA     = null;
 var CD_TARGET      = new Date('2026-03-08T21:00:00Z'); // 4PM Colombia = 9PM UTC
@@ -613,6 +676,126 @@ function cerrarVisor() {
   if (m) { m.style.animation = 'fadeInModal 0.3s ease reverse'; setTimeout(function(){ m.classList.remove('visible'); }, 280); }
 }
 
+
+/* ══════════════════════════════════════════════════════
+   MODO OSCURO
+══════════════════════════════════════════════════════ */
+function toggleDark() {
+  DARK_MODE = !DARK_MODE;
+  document.body.classList.toggle('dark', DARK_MODE);
+  document.getElementById('dark-toggle').textContent = DARK_MODE ? '☀️' : '🌙';
+}
+
+/* ══════════════════════════════════════════════════════
+   NOTIFICACIÓN + SONIDO DE ALERTA (solo coordinador)
+══════════════════════════════════════════════════════ */
+function reproducirAlerta() {
+  try {
+    var ctx = new (window.AudioContext || window.webkitAudioContext)();
+    [440, 554, 659, 880].forEach(function(freq, i) {
+      var osc = ctx.createOscillator();
+      var gain = ctx.createGain();
+      osc.connect(gain); gain.connect(ctx.destination);
+      osc.type = 'square';
+      osc.frequency.value = freq;
+      gain.gain.setValueAtTime(0.3, ctx.currentTime + i * 0.18);
+      gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + i * 0.18 + 0.3);
+      osc.start(ctx.currentTime + i * 0.18);
+      osc.stop(ctx.currentTime + i * 0.18 + 0.3);
+    });
+  } catch(e) {}
+}
+
+function mostrarNotifAlerta(texto) {
+  var n = document.getElementById('notif-alerta');
+  var b = document.getElementById('notif-body');
+  if (!n) return;
+  b.textContent = texto;
+  n.classList.add('visible');
+  if (SESSION && SESSION.rol === 'coordinador') reproducirAlerta();
+  setTimeout(cerrarNotif, 8000);
+}
+
+function cerrarNotif() {
+  var n = document.getElementById('notif-alerta');
+  if (n) n.classList.remove('visible');
+}
+
+/* ══════════════════════════════════════════════════════
+   DETECTOR DE NUEVAS ALERTAS (en cada refresh)
+══════════════════════════════════════════════════════ */
+function detectarNuevasAlertas(data) {
+  if (!SESSION || SESSION.rol === 'visor') return; // visor no recibe sonido
+  if (PREV_ALERTAS === null) { PREV_ALERTAS = data.alertas.length; return; }
+  if (data.alertas.length > PREV_ALERTAS) {
+    var nuevas = data.alertas.slice(0, data.alertas.length - PREV_ALERTAS);
+    var txt = nuevas.map(function(a){ return a.operador + ': ' + (a.texto||a.tipo); }).join(' | ');
+    mostrarNotifAlerta(txt);
+    // Hacer parpadear badge de alertas
+    var tabAl = document.getElementById('tab-alertas');
+    if (tabAl) { tabAl.classList.add('badge-nueva-alerta'); setTimeout(function(){ tabAl.classList.remove('badge-nueva-alerta'); }, 5000); }
+  }
+  PREV_ALERTAS = data.alertas.length;
+}
+
+/* ══════════════════════════════════════════════════════
+   CONFETI AL LLEGAR AL 100%
+══════════════════════════════════════════════════════ */
+var CONFETI_LANZADO = false;
+function lanzarConfeti() {
+  if (CONFETI_LANZADO) return;
+  CONFETI_LANZADO = true;
+  var canvas = document.getElementById('confeti-canvas');
+  canvas.style.display = 'block';
+  canvas.width = window.innerWidth; canvas.height = window.innerHeight;
+  var ctx2 = canvas.getContext('2d');
+  var particles = [];
+  var colors = ['#D4AF37','#8B0000','#fff','#ff6b6b','#ffd700'];
+  for (var i = 0; i < 180; i++) {
+    particles.push({
+      x: Math.random() * canvas.width, y: -20,
+      r: Math.random() * 8 + 4,
+      color: colors[Math.floor(Math.random() * colors.length)],
+      vx: (Math.random() - 0.5) * 4,
+      vy: Math.random() * 4 + 2,
+      angle: Math.random() * 360,
+      spin: (Math.random() - 0.5) * 8
+    });
+  }
+  var frames = 0;
+  function drawConfeti() {
+    ctx2.clearRect(0, 0, canvas.width, canvas.height);
+    particles.forEach(function(p) {
+      ctx2.save();
+      ctx2.translate(p.x, p.y);
+      ctx2.rotate(p.angle * Math.PI / 180);
+      ctx2.fillStyle = p.color;
+      ctx2.fillRect(-p.r/2, -p.r/2, p.r, p.r * 0.5);
+      ctx2.restore();
+      p.x += p.vx; p.y += p.vy; p.angle += p.spin; p.vy += 0.05;
+    });
+    frames++;
+    if (frames < 200) requestAnimationFrame(drawConfeti);
+    else { canvas.style.display = 'none'; CONFETI_LANZADO = false; }
+  }
+  drawConfeti();
+}
+
+/* ══════════════════════════════════════════════════════
+   CONTADOR MESAS PENDIENTES (KPI dinámico)
+══════════════════════════════════════════════════════ */
+function actualizarKpiPendientes(r) {
+  var el = document.getElementById('kpi-pendientes-val');
+  var bar = document.getElementById('kpi-pendientes-bar');
+  if (el) el.textContent = (r.pendiente || 0).toLocaleString();
+  if (bar && r.mesas) {
+    var pct = Math.round((r.pendiente / r.mesas) * 100);
+    bar.style.width = pct + '%';
+  }
+  if (r.pct >= 100) lanzarConfeti();
+}
+
+
 function cerrarBienvenida() {
   var m = document.getElementById('modal-bienvenida');
   if (m) { m.style.animation = 'fadeInModal 0.3s ease reverse'; setTimeout(function(){ m.classList.remove('visible'); }, 280); }
@@ -661,7 +844,7 @@ function login() {
 }
 
 function logout() {
-  SESSION = null; DASHBOARD_DATA = null; OP_DATA = null;
+  SESSION = null; DASHBOARD_DATA = null; OP_DATA = null; PREV_ALERTAS = null; CONFETI_LANZADO = false;
   if (CD_INTERVAL) { clearInterval(CD_INTERVAL); CD_INTERVAL = null; }
   if (REFRESH_INTERVAL) { clearInterval(REFRESH_INTERVAL); REFRESH_INTERVAL = null; }
   document.getElementById('countdown-widget').style.display = 'none';
@@ -755,6 +938,7 @@ function cargarDashboard(silencioso) {
     DASHBOARD_DATA = data;
     CACHE_DATA = data;
     LAST_UPDATE = new Date();
+    detectarNuevasAlertas(data);
     renderDashboard(data);
   });
 }
@@ -829,6 +1013,7 @@ function renderDashboard(data) {
 
   var kpiGrid = document.createElement('div');
   kpiGrid.className = 'kpi-grid';
+  kpiGrid.appendChild(kpiCard('azul',  'Mesas Pendientes', '<span id="kpi-pendientes-val">' + r.pendiente + '</span><div class="kpi-pendientes-bar" id="kpi-pendientes-bar" style="width:' + Math.round((r.pendiente/r.mesas)*100) + '%"></div>', 'Faltan por reportar'));
   kpiGrid.appendChild(kpiCard('rojo',  'Avance General',      r.pct + '%',                       r.completado.toLocaleString() + ' mesas completadas'));
   kpiGrid.appendChild(kpiCard('verde', 'Votos Julián Rojas',  r.votos_julian.toLocaleString(),   ''));
   kpiGrid.appendChild(kpiCard('azul',  'Votos David Pinilla', r.votos_david.toLocaleString(),    ''));
@@ -1436,6 +1621,15 @@ function togglePuesto(pi) {
 }
 
 function guardarMesa(pi, mi, mesa) {
+  // Confirmación antes de guardar
+  var row0 = document.getElementById('mesa-' + pi + '-' + mi);
+  if (row0) {
+    var campos = [];
+    row0.querySelectorAll('[data-field]').forEach(function(el) {
+      if (el.value) campos.push(el.getAttribute('data-field').replace('votos_','') + ': ' + el.value);
+    });
+    if (campos.length > 0 && !confirm('Confirmas guardar los votos? ' + campos.join(' | '))) return;
+  }
   var mid   = 'mesa-' + pi + '-' + mi;
   var btnId = 'btn-mesa-' + pi + '-' + mi;
   var row   = document.getElementById(mid);
@@ -1754,5 +1948,19 @@ function reiniciarPuesto(pi, puesto) {
     <button class="bienvenida-btn" onclick="cerrarBienvenida()">¡Vamos con toda, somos la Fuerza Renaciente! 🔴</button>
   </div>
 </div>
+
+<!-- DARK MODE TOGGLE -->
+<button id="dark-toggle" onclick="toggleDark()" title="Modo oscuro/claro">🌙</button>
+
+<!-- NOTIFICACIÓN ALERTA NUEVA -->
+<div id="notif-alerta">
+  <button class="notif-close" onclick="cerrarNotif()">✕</button>
+  <div class="notif-titulo">⚠️ Nueva Anomalía</div>
+  <div class="notif-body" id="notif-body">-</div>
+</div>
+
+<!-- CANVAS CONFETI -->
+<canvas id="confeti-canvas"></canvas>
+
 </body>
 </html>
