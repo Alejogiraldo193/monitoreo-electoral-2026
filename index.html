@@ -407,6 +407,23 @@
       box-shadow: 0 4px 16px rgba(139,0,0,0.4);
     }
     .bienvenida-btn:hover { background: var(--rojo-vivo); transform: translateY(-2px); }
+
+    #modal-visor {
+      display: none;
+      position: fixed; inset: 0; z-index: 9999;
+      background: rgba(0,0,0,0.75);
+      backdrop-filter: blur(6px);
+      align-items: center; justify-content: center;
+    }
+    #modal-visor.visible { display: flex; animation: fadeInModal 0.4s ease; }
+    .bienvenida-grito {
+      font-family: "Bebas Neue", sans-serif;
+      font-size: 1.4rem;
+      color: var(--oro);
+      letter-spacing: 1.5px;
+      margin-bottom: 20px;
+      text-shadow: 0 2px 8px rgba(212,175,55,0.4);
+    }
   </style>
 </head>
 <body>
@@ -519,7 +536,8 @@ var CREDS = {
   'Veronica': { password:'Veronica13', rol:'operador',    num:13 },
   'Lorena':   { password:'Lorena14',   rol:'operador',    num:14 },
   'Nicole':   { password:'Nicole15',   rol:'operador',    num:15 },
-  'Cristian': { password:'Cristian16', rol:'operador',    num:16 }
+  'Cristian': { password:'Cristian16', rol:'operador',    num:16 },
+  'Julian':   { password:'Julian2026',  rol:'visor',       num:0  }
 };
 
 // Imágenes del header (Base64)
@@ -589,6 +607,12 @@ document.addEventListener('DOMContentLoaded', function() {
 // AUTH
 // ═══════════════════════════════════════════════════════
 
+
+function cerrarVisor() {
+  var m = document.getElementById('modal-visor');
+  if (m) { m.style.animation = 'fadeInModal 0.3s ease reverse'; setTimeout(function(){ m.classList.remove('visible'); }, 280); }
+}
+
 function cerrarBienvenida() {
   var m = document.getElementById('modal-bienvenida');
   if (m) { m.style.animation = 'fadeInModal 0.3s ease reverse'; setTimeout(function(){ m.classList.remove('visible'); }, 280); }
@@ -607,16 +631,18 @@ function login() {
   SESSION = { usuario:u, rol:c.rol, num:c.num };
   document.getElementById('login-screen').style.display = 'none';
   // Mostrar modal de bienvenida
-  var cred = CREDS[usr];
+  var cred = CREDS[u];
   var modal = document.getElementById('modal-bienvenida');
   var bvNombre = document.getElementById('bv-nombre');
   var bvInfo = document.getElementById('bv-info');
-  if (modal && bvNombre && cred) {
-    bvNombre.textContent = usr.charAt(0).toUpperCase() + usr.slice(1);
+  var modalVisor = document.getElementById('modal-visor');
+  if (modalVisor && cred && cred.rol === 'visor') { modalVisor.classList.add('visible'); }
+  if (modal && bvNombre && cred && cred.rol !== "coordinador" && cred.rol !== 'visor') {
+    bvNombre.textContent = u.charAt(0).toUpperCase() + u.slice(1);
     var rol = cred.rol === 'coordinador' ? 'Coordinador/a General' : 'Operador/a #' + cred.num;
     var infoTxt = 'Rol: ' + rol + '\n';
     if (cred.rol !== 'coordinador') {
-      infoTxt = 'Estás ingresando como <strong>' + rol + '</strong>.<br>Recuerda registrar los votos de cada mesa en tu puesto asignado.<br>Ante cualquier novedad, repórtala en el campo de anomalías.';
+      infoTxt = 'Recuerda registrar los votos de cada mesa en tu puesto asignado. Ante cualquier novedad, repórtala en el campo de anomalías.';
     } else {
       infoTxt = 'Acceso completo al <strong>Centro de Monitoreo Electoral</strong>.<br>Puedes consultar el avance de todos los operadores y municipios en tiempo real.';
     }
@@ -624,9 +650,9 @@ function login() {
     modal.classList.add('visible');
   }
   document.getElementById('app').style.display = 'block';
-  document.getElementById('user-label').textContent = u + ' · ' + (c.rol === 'coordinador' ? 'Coordinador' : 'Operador #' + c.num);
+  document.getElementById('user-label').textContent = u + ' · ' + (c.rol === 'coordinador' ? 'Coordinador' : c.rol === 'visor' ? 'Vista General' : 'Operador #' + c.num);
   iniciarTemporizador();
-  if (c.rol === 'coordinador') { cargarDashboard(); iniciarAutoRefresh(); }
+  if (c.rol === 'coordinador' || c.rol === 'visor') { cargarDashboard(); iniciarAutoRefresh(); }
   else {
     cargarVistaOperador(SESSION.num, false);
     // Sincronizar timer cada 30s para operadores
@@ -736,7 +762,7 @@ function cargarDashboard(silencioso) {
 function iniciarAutoRefresh() {
   if (REFRESH_INTERVAL) clearInterval(REFRESH_INTERVAL);
   REFRESH_INTERVAL = setInterval(function() {
-    if (SESSION && SESSION.rol === 'coordinador') {
+    if (SESSION && (SESSION.rol === 'coordinador' || SESSION.rol === 'visor')) {
       cargarDashboard(true); // silencioso: no muestra spinner
     }
   }, 5 * 60 * 1000); // cada 5 minutos
@@ -759,7 +785,7 @@ function renderDashboard(data) {
     { id:'tab-municipios', label:'🗺️ Municipios' },
     { id:'tab-operadores', label:'👥 Operadores' },
     { id:'tab-alertas',    label:'⚠️ Alertas (' + data.alertas.length + ')' },
-    { id:'tab-informes',   label:'📄 Informes' }
+    { id:'tab-informes',   label:'📄 Informes', soloAdmin: true }
   ];
 
   tabDefs.forEach(function(t, i) {
@@ -1072,7 +1098,7 @@ function switchTab(el) {
   var tabId = el.getAttribute('data-tab');
   document.querySelectorAll('.tab').forEach(function(t) { t.classList.remove('active'); });
   el.classList.add('active');
-  ['tab-resumen','tab-municipios','tab-operadores','tab-alertas','tab-informes'].forEach(function(id) {
+  ['tab-resumen','tab-municipios','tab-operadores','tab-alertas',(SESSION && SESSION.rol !== 'visor' ? 'tab-informes' : null)].filter(Boolean).forEach(function(id) {
     var el = document.getElementById(id);
     if (el) el.style.display = id === tabId ? 'block' : 'none';
   });
@@ -1703,11 +1729,26 @@ function reiniciarPuesto(pi, puesto) {
 
 </script>
 
+
+<!-- MODAL BIENVENIDA VISOR -->
+<div id="modal-visor">
+  <div class="bienvenida-card">
+    <div class="bienvenida-icon">⚔️</div>
+    <div class="bienvenida-saludo">Bienvenido</div>
+    <div class="bienvenida-nombre">Julián</div>
+    <div class="bienvenida-info">
+      En este visor podrás ver el avance que el equipo de monitoreo realiza en tiempo real, con una actualización cada 5 minutos.<br><br>
+      Si se presenta cualquier duda, comunícate con el equipo.
+    </div>
+    <div class="bienvenida-grito">¡Vamos a ganar!</div>
+    <button class="bienvenida-btn" onclick="cerrarVisor()">¡Vamos con toda, somos la Fuerza Renaciente! 🔴</button>
+  </div>
+</div>
 <!-- MODAL BIENVENIDA -->
 <div id="modal-bienvenida">
   <div class="bienvenida-card">
     <div class="bienvenida-icon">👋</div>
-    <div class="bienvenida-saludo">Bienvenido/a al</div>
+    <div class="bienvenida-saludo">Bienvenido</div>
     <div class="bienvenida-nombre" id="bv-nombre">-</div>
     <div class="bienvenida-info" id="bv-info">Cargando información...</div>
     <button class="bienvenida-btn" onclick="cerrarBienvenida()">¡Vamos con toda, somos la Fuerza Renaciente! 🔴</button>
