@@ -688,17 +688,18 @@ function cerrarNotif() {
    DETECTOR DE NUEVAS ALERTAS (en cada refresh)
 ══════════════════════════════════════════════════════ */
 function detectarNuevasAlertas(data) {
-  if (!SESSION || SESSION.rol === 'visor') return; // visor no recibe sonido
-  if (PREV_ALERTAS === null) { PREV_ALERTAS = data.alertas.length; return; }
-  if (data.alertas.length > PREV_ALERTAS) {
-    var nuevas = data.alertas.slice(0, data.alertas.length - PREV_ALERTAS);
-    var txt = nuevas.map(function(a){ return a.operador + ': ' + (a.texto||a.tipo); }).join(' | ');
+  if (!SESSION || SESSION.rol !== 'coordinador') return; // solo admin recibe alerta
+  var total = data.alertas ? data.alertas.length : 0;
+  if (PREV_ALERTAS === null) { PREV_ALERTAS = total; return; } // primera carga, solo guardar
+  if (total > PREV_ALERTAS) {
+    var diff = total - PREV_ALERTAS;
+    var nuevas = data.alertas.slice(data.alertas.length - diff); // las más recientes al final
+    var txt = nuevas.map(function(a){
+      return (a.operador || '') + ': ' + (a.anomalia || a.texto || a.tipo || 'Nueva anomalía');
+    }).join(' | ');
     mostrarNotifAlerta(txt);
-    // Hacer parpadear badge de alertas
-    var tabAl = document.getElementById('tab-alertas');
-    if (tabAl) { tabAl.classList.add('badge-nueva-alerta'); setTimeout(function(){ tabAl.classList.remove('badge-nueva-alerta'); }, 5000); }
   }
-  PREV_ALERTAS = data.alertas.length;
+  PREV_ALERTAS = total;
 }
 
 function cerrarBienvenida() {
