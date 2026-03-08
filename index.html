@@ -1209,14 +1209,7 @@ function renderDashboard(data) {
   rightSide.appendChild(autoTag);
   rightSide.appendChild(refreshBtn);
 
-  // Botón victoria solo para admin (después de agregar al DOM)
-  if (SESSION && SESSION.rol === 'coordinador') {
-    var btnV = document.createElement('button');
-    btnV.id = 'btn-victoria';
-    btnV.textContent = '🏆 ¡Ganamos!';
-    btnV.addEventListener('click', activarVictoria);
-    rightSide.appendChild(btnV);
-  }
+
 
   topBar.appendChild(tabsEl);
   topBar.appendChild(rightSide);
@@ -1468,6 +1461,20 @@ function renderDashboard(data) {
     if (btnFecha) btnFecha.addEventListener('click', function() { controlTimer('setFecha'); });
   }, 100);
   tabInf.appendChild(panelTimer);
+
+  // ── Panel Victoria ──────────────────────────────────
+  var panelVictoria = document.createElement('div');
+  panelVictoria.className = 'panel';
+  panelVictoria.style.cssText = 'margin-top:20px; border: 2px solid rgba(212,175,55,0.4); background: linear-gradient(135deg, rgba(212,175,55,0.05), transparent);';
+  panelVictoria.innerHTML =
+    '<h3 style="color:var(--oro);">🏆 BOTÓN DE VICTORIA</h3>' +
+    '<p style="font-size:0.85rem;color:var(--texto2);margin-bottom:20px;">Actívalo solo en caso de ganar. Mostrará un mensaje especial a todos los usuarios conectados.</p>';
+  var btnVictoria = document.createElement('button');
+  btnVictoria.textContent = '🏆 ¡ACTIVAR VICTORIA!';
+  btnVictoria.style.cssText = 'background:linear-gradient(135deg,#D4AF37,#b8860b);color:#1a0000;border:none;padding:14px 32px;border-radius:25px;font-family:Montserrat,sans-serif;font-weight:800;font-size:1rem;letter-spacing:1px;cursor:pointer;box-shadow:0 4px 20px rgba(212,175,55,0.5);transition:all 0.2s;width:100%;';
+  btnVictoria.addEventListener('click', activarVictoria);
+  panelVictoria.appendChild(btnVictoria);
+  tabInf.appendChild(panelVictoria);
 
   mc.appendChild(tabInf);
 }
